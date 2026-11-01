@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsh-agent-kit"
+version = "1.0.0"
+description = "零依赖 DSH 接入层：JSONL 事件流客户端 + SSE 网关"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "dsh-agent-kit contributors" }]
+keywords = ["dsh", "agent", "jsonl", "sse", "headless", "integration"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/tongriyaotxt/dsh-agent-kit"
+
+[project.scripts]
+dsh-agent-gateway = "dsh_agent_kit.gateway:main"
+
+[tool.setuptools]
+packages = ["dsh_agent_kit"]
+
+[tool.pytest.ini_options]
+testpaths = ["../tests"]
+pythonpath = ["."]

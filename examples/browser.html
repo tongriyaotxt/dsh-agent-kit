@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>DSH agent · 自定义前端</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font: 14px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace;
+         background: #0d1117; color: #c9d1d9; }
+  header { padding: 12px 18px; border-bottom: 1px solid #21262d; display: flex; gap: 12px; align-items: center; }
+  header b { color: #58a6ff; }
+  input[type=text] { flex: 1; background: #161b22; color: #c9d1d9; border: 1px solid #30363d;
+                     border-radius: 6px; padding: 8px 10px; font: inherit; }
+  button { background: #238636; color: #fff; border: 0; border-radius: 6px; padding: 8px 16px; font: inherit; cursor: pointer; }
+  button.stop { background: #da3633; }
+  main { padding: 18px; max-width: 900px; }
+  pre { white-space: pre-wrap; background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+        padding: 14px; min-height: 200px; margin: 0; }
+  .meta { color: #8b949e; font-size: 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <b>DSH</b>
+  <input id="task" type="text" placeholder="输入任务，回车运行">
+  <button id="go">运行</button>
+  <button id="stop" class="stop">停止</button>
+</header>
+<main>
+  <pre id="out"></pre>
+  <div class="meta" id="meta">未连接</div>
+</main>
+<script>
+// 与 python/dsh_agent_kit/gateway.py 或 node/sse-gateway.mjs 对接
+const BASE = new URLSearchParams(location.search).get("base") || "http://127.0.0.1:8777";
+const TOKEN = new URLSearchParams(location.search).get("token") || "";
+const out = document.querySelector("#out");
+const meta = document.querySelector("#meta");
+const taskInput = document.querySelector("#task");
+
+let sessionId = null;
+let controller = null;
+
+const headers = () => {
+  const h = { "Content-Type": "application/json" };
+  if (TOKEN) h.Authorization = `Bearer ${TOKEN}`;
+  return h;
+};
+
+fetch(`${BASE}/health`, { headers: headers() })
+  .then((r) => r.json())
+  .then((h) => (meta.textContent = `profile=${h.profile}  cwd=${h.cwd}`))
+  .catch(() => (meta.textContent = `后端未就绪：${BASE}`));
+
+async function run() {
+  const task = taskInput.value.trim();
+  if (!task) return;
+  out.textContent = "";
+  controller = new AbortController();
+  const t0 = performance.now();
+
+  try {
+    const resp = await fetch(`${BASE}/ask`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ task, session_id: sessionId }),
+      signal: controller.signal,
+    });
+    if (!resp.ok) {
+      out.textContent = `HTTP ${resp.status}: ${await resp.text()}`;
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      // stream:true 必须：UTF-8 多字节可能被 chunk 边界切开
+      buffer += decoder.decode(value, { stream: true });
+
+      let index;
+      while ((index = buffer.indexOf("\n\n")) >= 0) {
+        const frame = buffer.slice(0, index);
+        buffer = buffer.slice(index + 2);
+        if (!frame.startsWith("data: ")) continue;
+        const ev = JSON.parse(frame.slice(6));
+        switch (ev.type) {
+          case "text": out.textContent += ev.text ?? ""; break;
+          case "final": out.textContent = ev.text ?? out.textContent; break;
+          case "session": sessionId = ev.sessionId; break;
+          case "status":
+            if (ev.usage) meta.textContent = `usage ${JSON.stringify(ev.usage)}`;
+            break;
+          case "error": out.textContent += `\n[error] ${ev.message}`; break;
+          default: break;   // 未知事件忽略，保持前向兼容
+        }
+      }
+    }
+  } catch (err) {
+    if (err.name !== "AbortError") out.textContent += `\n[js] ${err}`;
+  } finally {
+    meta.textContent += `  ·  sid=${sessionId ?? "-"}  ·  ${((performance.now() - t0) / 1000).toFixed(1)}s`;
+  }
+}
+
+document.querySelector("#go").onclick = run;
+document.querySelector("#stop").onclick = () => controller && controller.abort();
+taskInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+</script>
+</body>
+</html>

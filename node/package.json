@@ -1,0 +1,19 @@
+{
+  "name": "dsh-agent-kit-node",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node client + SSE gateway for DSH headless (zero dependency)",
+  "type": "module",
+  "exports": {
+    "./client": "./dsh-client.mjs",
+    "./gateway": "./sse-gateway.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test ../tests/test_node.mjs",
+    "gateway": "node sse-gateway.mjs --port 8778"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,24 @@
+# 专用 profile 覆盖层 — 复制到 ~/.dsh/profiles/<name>/ 后按需修改
+#
+# 生成方式：
+#   dsh --from-default-profile headless --profile <name>
+#
+# 验证组合结果：
+#   dsh --profile <name> --dump-config
+#
+# 注意：disabled 可以是 JS 表达式（!!js '...'），不要用静态比对判断某能力是否启用，
+#       要行为验证（让 agent 真的做一次）。
+
+# 关掉不需要的插件（id 见 --dump-config 输出）
+# - id: plugin-manager
+#   disabled: true
+
+# 打开/追加插件
+# - insert:
+#     - id: mcp-screen-use
+#       name: '@deepseek-ai/dsh-mcp-client'
+#       config:
+#         serverName: screen-use
+#         transport: stdio
+#         command: /path/to/venv/bin/python
+#         args: ['-m', 'screen_use.mcp_server']

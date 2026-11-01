@@ -1,0 +1,81 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    name: python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: 离线回归（客户端）
+        run: python tests/test_client.py
+      - name: 离线回归（网关）
+        run: python tests/test_gateway.py
+      - name: 协议一致性（离线）
+        run: python tests/conformance.py
+      - name: schema 版本自检
+        run: python -c "import json;json.load(open('spec/events.schema.json',encoding='utf-8'));print('schema ok')"
+
+  node:
+    name: node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 离线回归（Node 客户端 + 网关）
+        run: node --test tests/test_node.mjs
+        env:
+          DSH_KIT_PYTHON: python3
+
+  docs:
+    name: 文档链接自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 检查 md 内部相对链接是否存在
+        run: |
+          python - <<'PY'
+          import os, re, sys
+          root = os.getcwd()
+          missing = []
+          for dirpath, _, files in os.walk(root):
+              if '.git' in dirpath or 'node_modules' in dirpath:
+                  continue
+              for name in files:
+                  if not name.endswith('.md'):
+                      continue
+                  path = os.path.join(dirpath, name)
+                  text = open(path, encoding='utf-8').read()
+                  for label, target in re.findall(r'\[([^\]]+)\]\(([^)]+)\)', text):
+                      if target.startswith(('http://', 'https://', '#', 'mailto:')):
+                          continue
+                      clean = target.split('#', 1)[0]
+                      if not clean:
+                          continue
+                      absolute = os.path.normpath(os.path.join(dirpath, clean))
+                      if not os.path.exists(absolute):
+                          missing.append(f"{os.path.relpath(path, root)} -> {target}")
+          if missing:
+              print("broken links:")
+              print("\n".join(missing))
+              sys.exit(1)
+          print("all relative links ok")
+          PY

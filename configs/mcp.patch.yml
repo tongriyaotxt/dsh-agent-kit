@@ -1,0 +1,46 @@
+# 给 headless 叠加 MCP（不改动 ~/.dsh/profiles/headless）
+#
+# 用法（flag 顺序是关键）：
+#   dsh --patch configs/mcp.patch.yml --profile headless --json -
+#   DshClient(patches=["configs/mcp.patch.yml"])
+#
+# ⚠️ 顺序：--patch 属于启动器 flag，必须写在 app 参数（--json / --session-id / 任务）之前。
+#    dsh headless --patch x.yml   ->  unknown option '--patch'
+#
+# 💸 成本：每个 MCP server 的工具定义都会进上下文。
+#    实测只开 screen-use 一个，单轮 inputTokens 就从 169 涨到 ~1.8 万。
+#    默认只开一个，其余保持注释，按需打开。
+#
+# 想改成常驻：把 insert 段复制进 ~/.dsh/profiles/<name>/cordis.patch.yml
+
+- insert:
+    # 屏幕操作：截图 / 点击 / 打字 / UI 元素定位（工具多，按需开启）
+    - id: mcp-screen-use
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: screen-use
+        transport: stdio
+        # 换成你自己的 MCP server 启动命令（建议绝对路径）
+        command: /path/to/venv/bin/python
+        args: ['-m', 'screen_use.mcp_server']
+
+    # CAD 绘图：工具数量大，默认关闭
+    # - id: mcp-cad
+    #   name: '@deepseek-ai/dsh-mcp-client'
+    #   config:
+    #     serverName: cad-mcp
+    #     transport: stdio
+    #     command: /path/to/cad-mcp/.venv/bin/python
+    #     args: ['/path/to/cad-mcp/src/server.py']
+
+    # 自带 API key 的 server：用 env 注入，别写进代码
+    # - id: mcp-llm-chat
+    #   name: '@deepseek-ai/dsh-mcp-client'
+    #   config:
+    #     serverName: llm-chat
+    #     transport: stdio
+    #     command: python3
+    #     args: ['/path/to/llm_chat_server.py']
+    #     env:
+    #       LLM_BASE_URL: 'https://api.example.com/v1'
+    #       LLM_MODEL: 'model-name'

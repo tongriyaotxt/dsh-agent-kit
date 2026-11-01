@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tongriyaotxt/dsh-agent-kit/spec/events.schema.json",
+  "title": "DSH headless JSONL event",
+  "description": "One line of `dsh --profile <name> --json -` stdout. The stream is newline-delimited: each stdout line is exactly one object matching this schema. Diagnostics never appear here (they go to stderr). Events of types added by future dsh versions must be tolerated by consumers: unknown `type` means 'ignore this line', and unknown properties must be ignored.",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Discriminator. Known values: session | status | thinking | text | tool | final | _raw | error. The last two are synthesized by the client, never emitted by dsh."
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/session" },
+    { "$ref": "#/$defs/status" },
+    { "$ref": "#/$defs/thinking" },
+    { "$ref": "#/$defs/text" },
+    { "$ref": "#/$defs/tool" },
+    { "$ref": "#/$defs/final" },
+    { "$ref": "#/$defs/raw" },
+    { "$ref": "#/$defs/error" }
+  ],
+  "$defs": {
+    "session": {
+      "title": "session",
+      "description": "First event of every run. Persist sessionId to continue the conversation with --session-id.",
+      "type": "object",
+      "required": ["type", "sessionId"],
+      "properties": {
+        "type": { "const": "session" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "cwd": { "type": "string" }
+      }
+    },
+    "status": {
+      "title": "status",
+      "description": "Lifecycle and usage. Known phases: turn_start | step_start | step_end | turn_end. usage carries token accounting; reason carries why the turn ended (known kind: completed).",
+      "type": "object",
+      "required": ["type", "phase"],
+      "properties": {
+        "type": { "const": "status" },
+        "phase": { "type": "string", "minLength": 1 },
+        "turn": { "type": "integer", "minimum": 1 },
+        "step": { "type": "integer", "minimum": 1 },
+        "usage": { "$ref": "#/$defs/usage" },
+        "reason": {
+          "type": "object",
+          "properties": { "kind": { "type": "string" } }
+        }
+      }
+    },
+    "usage": {
+      "title": "usage",
+      "description": "Token accounting for one step. Multi-step turns must be summed by the consumer.",
+      "type": "object",
+      "properties": {
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "cacheReadTokens": { "type": "integer", "minimum": 0 },
+        "totalTokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "thinking": {
+      "title": "thinking",
+      "description": "Reasoning delta. May be an empty string when reasoning display is off. Render only if the UI wants it.",
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "thinking" },
+        "text": { "type": "string" }
+      }
+    },
+    "text": {
+      "title": "text",
+      "description": "Body delta. Concatenate deltas to render; final.text is authoritative for persistence.",
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "text" },
+        "text": { "type": "string" }
+      }
+    },
+    "tool": {
+      "title": "tool",
+      "description": "Tool invocation. Shape is version-dependent: pass it through to the UI unchanged and do not assume a fixed structure.",
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "tool" }
+      },
+      "additionalProperties": true
+    },
+    "final": {
+      "title": "final",
+      "description": "Final answer of a completed run. Treat as the authoritative result.",
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "final" },
+        "text": { "type": "string" }
+      }
+    },
+    "raw": {
+      "title": "_raw",
+      "description": "Client-synthesized: a stdout line that was not valid JSON. Kept verbatim so nothing is silently dropped.",
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "_raw" },
+        "text": { "type": "string" }
+      }
+    },
+    "error": {
+      "title": "error",
+      "description": "Client-synthesized: timeout or non-zero exit, surfaced as an event when strict mode is off.",
+      "type": "object",
+      "required": ["type", "message"],
+      "properties": {
+        "type": { "const": "error" },
+        "message": { "type": "string" },
+        "kind": { "type": "string" },
+        "exit_code": { "type": ["integer", "null"] }
+      }
+    }
+  },
+  "examples": [
+    { "type": "session", "sessionId": "session-ed3cbd0a-1f2b", "cwd": "D:\\proj" },
+    { "type": "status", "phase": "turn_start", "turn": 1 },
+    { "type": "status", "phase": "step_start", "turn": 1, "step": 1 },
+    { "type": "thinking", "text": "" },
+    { "type": "text", "text": "OK" },
+    {
+      "type": "status",
+      "phase": "step_end",
+      "turn": 1,
+      "step": 1,
+      "usage": { "inputTokens": 15968, "outputTokens": 4, "cacheReadTokens": 384, "totalTokens": 16356 }
+    },
+    { "type": "status", "phase": "turn_end", "turn": 1, "reason": { "kind": "completed" } },
+    { "type": "final", "text": "OK" }
+  ]
+}
