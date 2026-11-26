@@ -25,13 +25,38 @@ jobs:
         run: python tests/test_gateway.py
       - name: 协议一致性（离线）
         run: python tests/conformance.py
+      - name: 闸门的闸门（conformance 负样本：16 条必须能红）
+        run: python tests/test_conformance_negative.py
+      - name: 变异测试（注入错误后测试必须变红）
+        run: python tests/mutate.py
+      - name: 示例冒烟（fake dsh，零 token）
+        run: python tests/run_examples.py
+      - name: demo 冒烟（门面：零依赖、不联网、不用 key）
+        run: python tests/test_demo.py
       - name: schema 版本自检
         run: python -c "import json;json.load(open('spec/events.schema.json',encoding='utf-8'));print('schema ok')"
 
+  go:
+    name: go host（Windows）
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27"
+      - name: vet
+        working-directory: host
+        run: go vet ./...
+      - name: test（含「迁移被覆盖必须回滚」）
+        working-directory: host
+        run: go test ./...
+      - name: build（GUI 子系统）
+        working-directory: host
+        run: go build -trimpath -ldflags "-s -w -H windowsgui" -o dshapps.exe .
+
   node:
     name: node ${{ matrix.node }}
-    runs-on: ubuntu-latest
-    strategy:
+    runs-on: ubuntu-latest    strategy:
       fail-fast: false
       matrix:
         node: ["18", "20", "22"]

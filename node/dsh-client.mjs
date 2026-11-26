@@ -123,6 +123,26 @@ class LineQueue {
   }
 }
 
+/**
+ * `DSH_KIT_LAUNCHER` 环境变量优先：给一个 JSON 数组即可整段替换启动前缀，
+ * 与 Python 客户端行为一致。用于 CI 接 tests/fake_dsh.py、或离线演示：
+ *
+ *   DSH_KIT_LAUNCHER='["python","tests/fake_dsh.py"]'
+ */
+export function envLauncherOverride() {
+  const raw = process.env.DSH_KIT_LAUNCHER;
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((part) => String(part));
+    }
+  } catch {
+    // 不是合法 JSON：退回默认解析，不要因为一个破环境变量就抛错
+  }
+  return null;
+}
+
 export class DshClient {
   constructor({
     dsh = "dsh",
@@ -138,7 +158,7 @@ export class DshClient {
     extraApp = [],
     launcher = null,
   } = {}) {
-    this.launcher = launcher ? [...launcher] : [dsh];
+    this.launcher = launcher ? [...launcher] : (envLauncherOverride() ?? [dsh]);
     this.dsh = dsh;
     this.profile = profile;
     this.cwd = cwd;

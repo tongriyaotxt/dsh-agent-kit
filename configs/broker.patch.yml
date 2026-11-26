@@ -1,0 +1,14 @@
+# 把 LLM 请求改走本地凭证 broker：dsh 只拿占位符，真 key 在 broker 进程内存里。
+#
+# 用法（端口由 DSH_BROKER_URL 决定，默认 8787）：
+#   python -m dsh_agent_kit.broker --port 8787        # 另开一个窗口
+#   $env:DSH_BROKER_URL = 'http://127.0.0.1:8787'
+#   $env:DSH_BROKER_PLACEHOLDER = 'not-a-real-key'
+#   dsh --patch configs/broker.patch.yml --profile headless --json -
+#
+# 为什么用 !!js 而不是写死地址：broker 端口是动态的（可以是 0 让系统分配），
+# 写死会让「端口变了就全链路 502」变成一次很难查的事故（实测踩过）。
+- id: llm-deepseek
+  config:
+    baseURL: !!js process.env.DSH_BROKER_URL ?? 'http://127.0.0.1:8787'
+    apiKeyEnv: DSH_BROKER_PLACEHOLDER

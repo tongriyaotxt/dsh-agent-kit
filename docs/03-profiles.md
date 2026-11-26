@@ -102,7 +102,8 @@ dsh --profile headless --dump-config-schema       # 条目与 patch 的 JSON Sch
 
 ## 四、headless vs tui：能干什么
 
-装包数不同（**headless 97 / tui 124**），但差异不在数量，在几个关键能力。实测结论（`0.2.1-rc.2`）：
+装包数不同（**headless ≈98 / tui ≈126**，`0.2.1-rc.2` 实测；数字会随插件装删漂移，
+由 [`../tests/check_docs_drift.py`](../tests/check_docs_drift.py) 看住），但差异不在数量，在几个关键能力。实测结论（`0.2.1-rc.2`）：
 
 | 能力 | headless | tui | 备注 |
 |---|---|---|---|
@@ -117,7 +118,14 @@ dsh --profile headless --dump-config-schema       # 条目与 patch 的 JSON Sch
 | plan mode / goal / todo | ❌ | ✅ | 长任务编排 |
 | TUI 面板 / workspace / storage | — | ✅ | UI 基础设施，headless 不需要 |
 
-**结论**：要做「无人值守的接入」，headless 够用；唯一必须补的是 MCP，见 [04-mcp.md](04-mcp.md)。要 plan/goal/长任务编排，那就得考虑用 tui profile，但那意味着你要驱动界面 —— 通常不值得，改用「应用侧自己编排 + 多次 headless 调用」更稳。
+**结论**：要做「无人值守的接入」，headless 够用，但开箱即用之前必须补两样：
+
+| 必补 | 症状 | 补法 |
+|---|---|---|
+| **凭证** | `turn_end.reason.error.code = MISSING_CREDENTIAL`，`final.text` 是空串 | 见本文第七节「凭证」 |
+| **MCP**（需要时） | 工具不存在 | 见 [04-mcp.md](04-mcp.md) |
+
+要 plan/goal/长任务编排，那就得考虑 tui profile —— 但 **`dsh-tui` profile 跑 `--json -` 会挂起（2026-11-25 实测 180 s 无输出）**，别拿它试。正确做法是「应用侧自己编排 + 多次 headless 调用」，这一点原文的结论是对的。
 
 ## 五、常驻化：把覆盖层写进 profile
 
@@ -145,3 +153,41 @@ dsh --profile headless --patch configs/mcp.patch.yml --dump-config | grep -A3 mc
 | 插件装了但没生效 | `disabled` 是 JS 表达式 | `--dump-config` 看 `# ==` 注释链 |
 | 换机器就坏 | 用了开发机默认 profile | 专用 profile + 配置进仓库 |
 | MCP 工具不存在 | headless 无 MCP 配置 | 用 `--patch` 或常驻覆盖层 |
+| `MISSING_CREDENTIAL` 且 `final.text` 为空串 | headless bundle 默认关掉凭证 | 见下一节 |
+
+---
+
+## 七、凭证：headless 默认是关的（2026-11-25 实测）
+
+`--dump-config` 显示 `authorization` 与 `credentials`（`@deepseek-ai/dsh-credentials-local`）都被
+`@deepseek-ai/dsh-headless` 打成 `disabled: true`。所以照文档直接跑：
+
+```bash
+echo 'reply with OK' | dsh --profile headless --json -
+# ... {"type":"status","phase":"turn_end","reason":{"kind":"error","error":{"code":"MISSING_CREDENTIAL",
+#      "message":"llm-deepseek: no API key for provider route \"deepseek-official\""}}}
+# ... {"type":"final","text":""}
+```
+
+**这不是配置错，是 bundle 的默认值。** 用 [`../configs/cred.patch.yml`](../configs/cred.patch.yml) 打开：
+
+```bash
+dsh --patch configs/cred.patch.yml --profile headless --json -
+# 实测：单轮 6.6 s 正常返回，usage inputTokens=3722 / outputTokens=2
+```
+
+补丁内容只有两条：
+
+```yaml
+- id: credentials
+  disabled: false
+- id: authorization
+  disabled: false
+```
+
+**接入方建议**：为每个应用建独立 profile，把这两条固化进
+`~/.dsh/profiles/<app>/cordis.patch.yml`，否则换台机器会再踩一次。
+
+> **另一条实测警告**：`dsh-tui` profile 跑 `--json -` 会挂起（实测 180 s 无 stdout）。
+> `--json` 只配 `headless` 或专用 profile。判断挂起的辅助手段见
+> [`../tests/fake_dsh.py`](../tests/fake_dsh.py) 与客户端 `idle_timeout`（docs/09-issues A8）。

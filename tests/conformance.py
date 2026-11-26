@@ -60,6 +60,10 @@ def schema_check(events, schema) -> list:
     defs = schema["$defs"]
     problems = []
     for index, ev in enumerate(events):
+        if not isinstance(ev, dict):
+            # 非对象行由 stream_invariants 的 non_object 类别负责；
+            # 这里必须跳过，否则闸门自己会在坏输入上抛异常（2026-11-25 负样本抓到）
+            continue
         kind = ev.get("type")
         if kind in ("_raw", "error"):
             continue

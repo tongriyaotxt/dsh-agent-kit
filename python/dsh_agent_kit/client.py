@@ -29,6 +29,7 @@ SCRUB_ENV = ("DSH_SESSION_ID", "DSH_PROFILE", "DSH_PROFILE_DIR")
 KIND_SPAWN = "spawn"
 KIND_TIMEOUT = "timeout"
 KIND_EXIT = "exit"
+KIND_IDLE = "idle"      # 空闲超时：连续 N 秒没有任何 stdout，判为挂起
 
 _UNSET = object()
 
@@ -59,7 +60,20 @@ def resolve_launcher(dsh: str = "dsh") -> List[str]:
 
     Windows 上 npm 生成的是 ``dsh.cmd``：``shutil.which`` 能找到它，但直接
     Popen 一个 ``.cmd`` 会 FileNotFoundError，必须 ``cmd /c`` 包装。
+
+    **``DSH_KIT_LAUNCHER`` 环境变量优先**：给一个 JSON 数组即可整段替换前缀，
+    用于 CI 里接 ``tests/fake_dsh.py``、或在没有 dsh 的机器上做离线演示：
+
+        DSH_KIT_LAUNCHER='["python","tests/fake_dsh.py"]'
     """
+    override = os.environ.get("DSH_KIT_LAUNCHER")
+    if override:
+        try:
+            parsed = json.loads(override)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, list) and parsed:
+            return [str(part) for part in parsed]
     exe = shutil.which(dsh) or dsh
     if os.name == "nt" and exe.lower().endswith((".cmd", ".bat")):
         return ["cmd", "/c", exe]
@@ -178,6 +192,7 @@ class DshClient:
         patches: Optional[Sequence[str]] = None,
         env: Optional[Dict[str, str]] = None,
         timeout: float = 600.0,
+        idle_timeout: float = 0.0,
         strict: bool = True,
         track_session: bool = True,
         drop_session_env: bool = True,
@@ -193,6 +208,8 @@ class DshClient:
         self.cwd = cwd or os.getcwd()
         self.patches = list(patches or ())
         self.timeout = float(timeout)
+        #: 空闲超时（秒）。0 = 关闭。用于区分「挂起」与「慢任务」。
+        self.idle_timeout = float(idle_timeout)
         self.strict = strict
         self.track_session = track_session
         self.extra_launcher = list(extra_launcher or ())
@@ -241,6 +258,7 @@ class DshClient:
         task: str,
         session_id: Any = _UNSET,
         timeout: Optional[float] = None,
+        idle_timeout: Optional[float] = None,
         extra_app: Optional[Sequence[str]] = None,
     ) -> Iterator[dict]:
         """逐条产出事件字典。
@@ -286,6 +304,9 @@ class DshClient:
             raise DshError("写入任务失败: %s" % exc, kind=KIND_SPAWN) from exc
 
         deadline = time.monotonic() + limit
+        idle = self.idle_timeout if idle_timeout is None else float(idle_timeout)
+        idle_on = idle > 0
+        last_activity = time.monotonic()
         # 读 stdout 必须放在独立线程里：readline() 阻塞时主循环拿不到控制权，
         # 超时就会失效（子进程挂住 = 你的客户端一起挂住）。
         lines: "queue.Queue[tuple]" = queue.Queue()
@@ -293,6 +314,7 @@ class DshClient:
         pump.start()
 
         timed_out = False
+        idle_exceeded = False
         try:
             while True:
                 remaining = deadline - time.monotonic()
@@ -300,12 +322,19 @@ class DshClient:
                     timed_out = True
                     self._kill(proc)
                     break
+                # 总超时与空闲超时取更近的那个
+                wait = remaining if not idle_on else min(remaining, idle)
                 try:
-                    kind, payload = lines.get(timeout=remaining)
+                    kind, payload = lines.get(timeout=wait)
                 except queue.Empty:
-                    timed_out = True
-                    self._kill(proc)
-                    break
+                    if idle_on and (time.monotonic() - last_activity) >= idle:
+                        # 进程还活着，但连续 idle 秒一个字都不吐 —— 典型挂起
+                        # （实测案例：dsh-tui profile + --json，180 s 无输出）
+                        idle_exceeded = True
+                        self._kill(proc)
+                        break
+                    continue        # 只是这一小段没数据，回去重算剩余时间
+                last_activity = time.monotonic()
                 if kind == "eof":
                     break
                 line = payload.decode("utf-8", "replace").strip()
@@ -337,6 +366,13 @@ class DshClient:
                 )
             yield {"type": "error", "message": "timeout %.0fs" % limit,
                    "kind": KIND_TIMEOUT}
+            return
+
+        if idle_exceeded:
+            message = "空闲 %.0fs 无任何 stdout（疑似挂起）" % idle
+            if self.strict:
+                raise DshError(message, kind=KIND_IDLE, stderr=err, events=collected)
+            yield {"type": "error", "message": message, "kind": KIND_IDLE}
             return
 
         if proc.returncode not in (0, None):

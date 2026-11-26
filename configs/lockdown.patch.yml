@@ -1,0 +1,17 @@
+# 收紧外联 —— 默认关掉 web 搜索与抓取（docs/09-issues.md D3，v0.1 的 L1 处理）
+#
+# 为什么关插件而不是加白名单：
+#   白名单要宿主做 HTTP 代理才拦得住；关插件是 dsh 原生能力，零成本、零误伤。
+#   `web` 是总服务（`@deepseek-ai/dsh-web`），关掉它连带 search / fetch 一起失效。
+#
+# 用法：
+#   dsh --patch configs/lockdown.patch.yml --profile headless --json -
+#
+# 验证（应看到 disabled: true）：
+#   dsh --patch configs/lockdown.patch.yml --profile headless --dump-config | grep -A2 "id: web"
+- id: tool-web
+  disabled: true
+- id: web-search-deepseek
+  disabled: true
+- id: web-fetch-http
+  disabled: true

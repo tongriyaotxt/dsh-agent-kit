@@ -1,0 +1,13 @@
+﻿{"type":"session","sessionId":"session-478556c7-091a-49ba-9733-931570e1a741","cwd":"D:\\project\\scientific-research\\dsh-agent-kit"}
+{"type":"status","phase":"turn_start","turn":1}
+{"type":"status","phase":"step_start","turn":1,"step":1}
+{"type":"thinking","text":""}
+{"type":"tool_call","callId":"call_00_ET_Nr1HfySVuMRFuFfCxuyq0673","tool":"pwsh","input":{"description":"Run Write-Output hi","command":"Write-Output 'hi'"}}
+{"type":"tool_result","callId":"call_00_ET_Nr1HfySVuMRFuFfCxuyq0673","status":"completed","result":"hi\r\n"}
+{"type":"status","phase":"step_end","turn":1,"step":1,"usage":{"inputTokens":3766,"outputTokens":63,"cacheReadTokens":5632,"cacheWriteTokens":0,"totalTokens":9461}}
+{"type":"status","phase":"step_start","turn":1,"step":2}
+{"type":"thinking","text":""}
+{"type":"text","text":"pwsh 命令 `Write-Output 'hi'` 的输出原样如下：\n\n```\nhi\n```"}
+{"type":"status","phase":"step_end","turn":1,"step":2,"usage":{"inputTokens":260,"outputTokens":23,"cacheReadTokens":9216,"cacheWriteTokens":0,"totalTokens":9499}}
+{"type":"status","phase":"turn_end","turn":1,"reason":{"kind":"completed"}}
+{"type":"final","text":"pwsh 命令 `Write-Output 'hi'` 的输出原样如下：\n\n```\nhi\n```"}

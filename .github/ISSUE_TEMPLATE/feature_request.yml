@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest something — but read the "what this is not" section first
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two questions that save a lot of back-and-forth:
+
+        1. **Which lock does this strengthen?** This project cares about exactly two things:
+           cases pass, and mutations get caught. A feature that doesn't affect either needs a
+           good reason.
+        2. **Can it be verified?** If we can't write a test that fails when the feature is
+           missing, we can't tell whether it shipped. `docs/09-issues.md` is the backlog —
+           every entry there has an executable acceptance criterion for this reason.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve
+      description: Describe the situation you hit, not the API you want.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: How would we know it works
+      description: A command, an assertion, a number. "It feels better" doesn't count.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: I checked `docs/09-issues.md` and this isn't already listed
+          required: true
+        - label: This isn't asking the project to become a coding agent / test framework / IDE plugin
+          required: true

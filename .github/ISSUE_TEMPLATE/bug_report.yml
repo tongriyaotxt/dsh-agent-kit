@@ -1,0 +1,57 @@
+name: Bug report
+description: Something is broken or the docs are wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Two things first:
+
+        1. `dsh-agent-kit demo` runs with **no deps, no API key, no network** — if your bug shows up there, it's much easier to reproduce.
+        2. If the docs say X and reality is Y, that's a bug too. Please report it — we track doc drift as a test failure.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behavior, verbatim error output if you have it.
+      placeholder: |
+        $ python verify.py --mutate
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Exact commands. If it involves an app, paste `app.json` and the failing `cases.json` entry.
+      placeholder: |
+        pip install dsh-agent-kit
+        dsh-agent-kit scaffold demo-app
+        cd demo-app && python verify.py --mutate
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `dsh-agent-kit --version`, plus `dsh --version` if you're using a real runtime
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: OS / Python
+      placeholder: Windows 11 · Python 3.13 · Go 1.27 (if host)
+    validations:
+      required: true

@@ -14,6 +14,7 @@
 from .client import (
     DEFAULT_PROFILE,
     KIND_EXIT,
+    KIND_IDLE,
     KIND_SPAWN,
     KIND_TIMEOUT,
     DshClient,
@@ -23,8 +24,10 @@ from .client import (
     build_env,
     resolve_launcher,
 )
+from .broker import PLACEHOLDER_KEY, Broker
+from .guard import ProfileGuard, diff, fingerprint, set_readonly
 
-__version__ = "1.0.0"
+__version__ = "1.9.0"
 __all__ = [
     "DshClient",
     "DshError",
@@ -32,9 +35,16 @@ __all__ = [
     "DEFAULT_PROFILE",
     "KIND_TIMEOUT",
     "KIND_EXIT",
+    "KIND_IDLE",
     "KIND_SPAWN",
     "build_argv",
     "build_env",
     "resolve_launcher",
+    "Broker",
+    "PLACEHOLDER_KEY",
+    "ProfileGuard",
+    "fingerprint",
+    "diff",
+    "set_readonly",
     "__version__",
 ]

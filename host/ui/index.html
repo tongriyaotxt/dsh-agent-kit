@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>dsh apps</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --panel: #fff; --line: #e5e7eb; --fg: #16181d; --dim: #6b7280;
+    --accent: #2f6feb; --ok: #16a34a; --warn: #b45309; --err: #dc2626;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15171c; --panel: #1c1f26; --line: #2b2f38; --fg: #e6e8ee; --dim: #98a1b0;
+            --accent: #6ea0ff; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 13.5px/1.6 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--fg); display: grid;
+    grid-template-columns: 268px 1fr; overflow: hidden;
+  }
+  /* ---------- 左栏 ---------- */
+  aside { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
+  .brand { padding: 14px 16px 10px; -webkit-app-region: drag; }
+  .brand h1 { margin: 0; font-size: 14px; letter-spacing: .02em; }
+  .brand p { margin: 2px 0 0; color: var(--dim); font-size: 11.5px; font-family: var(--mono); }
+  .list { overflow: auto; padding: 6px; flex: 1; }
+  .item { padding: 9px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+  .item:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .item.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .item .name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .item .desc { color: var(--dim); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { font-size: 10px; padding: 1px 6px; border-radius: 20px; background: var(--line); color: var(--dim); font-weight: 500; }
+  .badge.ro { background: #fee2e2; color: #991b1b; }
+  .badge.bad { background: #fef3c7; color: var(--warn); }
+  .foot { padding: 8px 12px; border-top: 1px solid var(--line); color: var(--dim); font-size: 11px; font-family: var(--mono); }
+  /* ---------- 凭证告警条 ---------- */
+  .warnbar {
+    display: none; align-items: center; gap: 10px; padding: 8px 18px;
+    background: #fef3c7; color: #7c2d12; border-bottom: 1px solid #fcd34d; font-size: 12.5px;
+  }
+  .warnbar.show { display: flex; }
+  .warnbar b { font-weight: 600; }
+  .warnbar .spacer { flex: 1; }
+  .warnbar button { padding: 3px 10px; font-size: 12px; border-color: #d97706; }
+  /* ---------- 右栏 ---------- */
+  main { display: flex; flex-direction: column; min-width: 0; }
+  header { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; background: var(--panel); }
+  header .title { font-size: 15px; font-weight: 600; }
+  header .meta { color: var(--dim); font-size: 11.5px; font-family: var(--mono); }
+  .spacer { flex: 1; }
+  button {
+    font: inherit; padding: 6px 14px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--fg); cursor: pointer; white-space: nowrap;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:disabled { opacity: .45; cursor: default; }
+  button:disabled { opacity: .45; cursor: default; }
+  .compose { padding: 12px 18px; display: flex; gap: 8px; border-bottom: 1px solid var(--line); }
+  .compose textarea {
+    flex: 1; resize: none; height: 56px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+    font: inherit;
+  }
+  .compose textarea:focus { outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  .stream { flex: 1; overflow: auto; padding: 14px 18px 40px; }
+  .ev { margin: 0 0 8px; }
+  .ev .tag { font-family: var(--mono); font-size: 10.5px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  .ev.text { white-space: pre-wrap; }
+  .ev.final { background: color-mix(in srgb, var(--ok) 10%, transparent); border-left: 3px solid var(--ok);
+              padding: 8px 12px; border-radius: 0 6px 6px 0; white-space: pre-wrap; font-weight: 500; }
+  .ev.tool { background: color-mix(in srgb, var(--accent) 8%, transparent); border-left: 3px solid var(--accent);
+             padding: 6px 10px; border-radius: 0 6px 6px 0; font-family: var(--mono); font-size: 12px;
+             white-space: pre-wrap; word-break: break-all; }
+  .ev.result { color: var(--dim); font-family: var(--mono); font-size: 11.5px; white-space: pre-wrap;
+               border-left: 2px solid var(--line); padding-left: 10px; }
+  .ev.err { color: var(--err); font-family: var(--mono); font-size: 11.5px; }
+  .ev.diag { color: var(--dim); font-family: var(--mono); font-size: 11px; }
+  .ev.think { color: var(--dim); font-size: 11.5px; font-style: italic; white-space: pre-wrap; }
+  .ev.status { color: var(--dim); font-size: 11px; font-family: var(--mono); }
+  .empty { color: var(--dim); text-align: center; margin-top: 18vh; }
+  .empty h2 { font-size: 15px; font-weight: 600; color: var(--fg); margin: 0 0 6px; }
+  .empty .hint { font-size: 12.5px; margin-bottom: 18px; }
+  .samples { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .samples button { font-size: 12px; }
+  .collapsed { color: var(--dim); font-size: 11px; cursor: pointer; text-decoration: underline dotted; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">
+    <h1>dsh apps</h1>
+    <p id="root">…</p>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="foot" id="foot">加载中…</div>
+</aside>
+
+<main>
+  <div class="warnbar" id="warnbar">
+    <span id="warntext"></span>
+    <span class="spacer"></span>
+    <button id="migrateBtn">迁移到密钥库</button>
+    <button id="restoreBtn" style="display:none">恢复</button>
+  </div>
+  <header>
+    <div>
+      <div class="title" id="title">选择一个 app</div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="spacer"></div>
+    <button id="openBtn" disabled>打开目录</button>
+    <button id="stopBtn" disabled>停止</button>
+    <button class="primary" id="runBtn" disabled>运行</button>
+  </header>
+
+  <div class="compose">
+    <textarea id="task" placeholder="说清你要它做什么…（Ctrl+Enter 运行）"></textarea>
+    <button class="primary" id="sendBtn" disabled>发送</button>
+  </div>
+
+  <div class="stream" id="stream"></div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { apps: [], current: null, running: false, startedAt: 0 };
+
+//: 空状态的一键直达（B1）：点了就填进输入框并立刻跑
+const SAMPLES = [
+  { label: '让 AI 自己写实现并自证',
+    task: '读 AGENT_RULES.md 和 cases.json，实现 logic.py，然后用 python verify.py --mutate 自证。' },
+  { label: '只看当前自证状态',
+    task: '跑一次 python verify.py --mutate，把结果贴出来。' },
+  { label: '先摸清这个 app',
+    task: '列出这个目录里所有文件和它们的作用。' },
+];
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function refreshCredState() {
+  const st = JSON.parse(await window.hostCredState());
+  const bar = $('warnbar');
+  if (st.hasReal) {
+    bar.classList.add('show');
+    $('warntext').innerHTML =
+      `<b>你的 API key 在磁盘上</b> —— ${esc(st.path)} 是明文，agent 的 read 工具能直接读到。` +
+      `迁移到密钥库（DPAPI 加密）后，文件里只留占位符。` +
+      `<span style="opacity:.75">注意：迁移后其他直接跑 dsh 的会话也需要挂 broker。</span>`;
+    $('migrateBtn').style.display = '';
+    $('restoreBtn').style.display = st.backups ? '' : 'none';
+  } else if (st.inStore) {
+    bar.classList.add('show');
+    $('warntext').innerHTML = '<b>key 在宿主密钥库里</b>，磁盘上没有明文。可以点「恢复」退回明文（不建议）。';
+    $('migrateBtn').style.display = 'none';
+    $('restoreBtn').style.display = st.backups ? '' : 'none';
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+async function boot() {
+  const res = JSON.parse(await window.hostApps());
+  state.apps = res.apps || [];
+  $('root').textContent = res.root;
+  const ver = JSON.parse(await window.hostVersion());
+  $('foot').textContent = `${ver.go} · ${ver.os}/${ver.arch}`
+    + (ver.broker ? ' · broker:开' : ' · broker:关')
+    + (ver.patch ? ' · sandbox:开' : '');
+  await refreshCredState();
+  renderList();
+  if (state.apps.length) select(state.apps[0]);
+}
+
+function renderList() {
+  const list = $('list');
+  list.innerHTML = '';
+  if (!state.apps.length) {
+    list.innerHTML = '<div style="padding:12px;color:var(--dim);font-size:12px">'
+      + '这个目录里还没有 app。<br>用 <code>python -m dsh_agent_kit.scaffold 名字</code> 生成一个。</div>';
+    return;
+  }
+  for (const a of state.apps) {
+    const div = document.createElement('div');
+    div.className = 'item' + (state.current && state.current.dir === a.dir ? ' active' : '');
+    const tags = [];
+    if (a.bad) tags.push('<span class="badge bad">异常</span>');
+    if (a.sandbox === 'read-only') tags.push('<span class="badge ro">只读</span>');
+    if (!a.hasCases) tags.push('<span class="badge">无断言</span>');
+    div.innerHTML = `<div class="name">${esc(a.name)} ${tags.join('')}</div>
+      <div class="desc">${esc(a.desc || a.bad || '')}</div>`;
+    div.onclick = () => select(a);
+    list.appendChild(div);
+  }
+}
+
+function showEmptyState() {
+  const wrap = document.createElement('div');
+  wrap.className = 'empty';
+  wrap.innerHTML = '<h2>还没有任务</h2><div class="hint">点一个就走，或者在上面自己写：</div>'
+    + '<div class="samples"></div>';
+  const box = wrap.querySelector('.samples');
+  SAMPLES.forEach(text => {
+    const b = document.createElement('button');
+    b.textContent = text.label;
+    b.onclick = () => {
+      if (!state.current) { addEv('err', '先在左边选一个 app'); return; }
+      if (state.current.bad) { addEv('err', state.current.bad); return; }
+      $('task').value = text.task;
+      run();
+    };
+    box.appendChild(b);
+  });
+  $('stream').appendChild(wrap);
+}
+
+function select(a) {
+  state.current = a;
+  renderList();
+  $('title').textContent = a.name;
+  $('meta').textContent = [a.profile, a.sandbox, a.network ? '联网' : '禁网', a.dir].filter(Boolean).join('  ·  ');
+  $('task').disabled = !!a.bad;
+  $('runBtn').disabled = !!a.bad;
+  $('sendBtn').disabled = !!a.bad;
+  $('openBtn').disabled = false;
+  $('stream').innerHTML = '';
+  if (a.bad) { addEv('err', '这个 app 有问题：' + a.bad); return; }
+  if (!a.hasCases) addEv('diag', '提示：这个 app 没有 cases.json，自证跑不起来');
+  showEmptyState();
+}
+
+function addEv(kind, text, tag) {
+  const d = document.createElement('div');
+  d.className = 'ev ' + kind;
+  if (tag) {
+    const t = document.createElement('div');
+    t.className = 'tag';
+    t.textContent = tag;
+    d.appendChild(t);
+  }
+  const body = document.createElement('div');
+  body.textContent = text;
+  d.appendChild(body);
+  $('stream').appendChild(d);
+  $('stream').scrollTop = $('stream').scrollHeight;
+  return d;
+}
+
+// Go 侧推送：window.__onEvent(JSON字符串)
+let curText = null;
+let curThink = null;
+window.__onEvent = (raw) => {
+  let ev;
+  try { ev = JSON.parse(raw); } catch { addEv('err', '事件解析失败: ' + raw.slice(0, 200)); return; }
+  switch (ev.type) {
+    case '_start':
+      state.running = true; state.startedAt = Date.now();
+      curText = null; curThink = null;
+      $('runBtn').disabled = true; $('sendBtn').disabled = true; $('stopBtn').disabled = false;
+      addEv('diag', '启动 · ' + ev.cmd, '_start');
+      break;
+    case '_end':
+      state.running = false;
+      $('runBtn').disabled = false; $('sendBtn').disabled = false; $('stopBtn').disabled = true;
+      {
+        const secs = ((Date.now() - state.startedAt) / 1000).toFixed(1);
+        addEv(ev.code === 0 ? 'diag' : 'err', `结束 · 退出码 ${ev.code} · 耗时 ${secs}s`, '_end');
+      }
+      break;
+    case '_stderr':
+      addEv('diag', ev.text, 'stderr');
+      break;
+    case '_raw':
+      addEv('diag', ev.text, '_raw');
+      break;
+    case 'session':
+      addEv('diag', '会话 ' + ev.sessionId, 'session');
+      break;
+    case 'thinking':
+      if (!curThink) { curThink = addEv('think', '', 'thinking'); }
+      curThink.lastChild.textContent += ev.text || '';
+      $('stream').scrollTop = $('stream').scrollHeight;
+      break;
+    case 'text':
+      if (!curText) { curText = addEv('text', '', 'assistant'); }
+      curText.lastChild.textContent += ev.text || '';
+      $('stream').scrollTop = $('stream').scrollHeight;
+      break;
+    case 'tool_call': {
+      const cmd = (ev.input && (ev.input.command || ev.input.description || ev.input.path)) || '';
+      addEv('tool', `${ev.tool}  ${cmd}`.trim(), 'tool_call');
+      break;
+    }
+    case 'tool_result': {
+      const r = typeof ev.result === 'string' ? ev.result : JSON.stringify(ev.result);
+      const short = (r || '').length > 800 ? r.slice(0, 800) + '\n…（已截断）' : r;
+      addEv('result', short || '(无输出)', 'tool_result · ' + ev.status);
+      break;
+    }
+    case 'status':
+      if (ev.phase === 'turn_end' && ev.reason && ev.reason.kind !== 'completed') {
+        addEv('err', '结束原因: ' + JSON.stringify(ev.reason), 'turn_end');
+      } else if (ev.phase === 'step_end' && ev.usage) {
+        const u = ev.usage;
+        addEv('status', `step ${ev.step} · in ${u.inputTokens} / out ${u.outputTokens} / cache ${u.cacheReadTokens}`, 'usage');
+      }
+      break;
+    case 'final':
+      addEv('final', ev.text || '(空)', 'final');
+      break;
+    case 'error':
+      addEv('err', (ev.kind || 'error') + ': ' + (ev.message || ''), 'error');
+      break;
+    default:
+      addEv('diag', JSON.stringify(ev).slice(0, 400), ev.type || '?');
+  }
+};
+
+async function run() {
+  if (!state.current || state.running) return;
+  const task = $('task').value.trim();
+  if (!task) { $('task').focus(); return; }
+  $('stream').innerHTML = '';
+  try {
+    const raw = await window.hostRun(state.current.dir, task);
+    const res = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!res.ok) addEv('err', res.err || '启动失败');
+  } catch (e) {
+    addEv('err', '启动异常: ' + (e && e.message ? e.message : e));
+  }
+}
+
+async function stop() {
+  const res = JSON.parse(await window.hostStop());
+  if (!res.ok) addEv('err', res.err || '停止失败');
+}
+
+$('runBtn').onclick = run;
+$('sendBtn').onclick = run;
+$('stopBtn').onclick = stop;
+$('openBtn').onclick = () => state.current && window.hostOpen(state.current.dir);
+$('migrateBtn').onclick = async () => {
+  $('migrateBtn').disabled = true;
+  const r = JSON.parse(await window.hostMigrateKey());
+  $('migrateBtn').disabled = false;
+  if (r.ok) {
+    addEv('diag', '已把 key 迁到密钥库。备份：' + r.backup, 'migrate');
+    await refreshCredState();
+  } else {
+    addEv('err', '迁移失败：' + r.err, 'migrate');
+  }
+};
+$('restoreBtn').onclick = async () => {
+  const r = JSON.parse(await window.hostRestoreKey());
+  if (r.ok) {
+    addEv('diag', '已恢复到：' + r.backup, 'restore');
+    await refreshCredState();
+  } else {
+    addEv('err', '恢复失败：' + r.err, 'restore');
+  }
+};
+$('task').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(); }
+});
+
+
+// 兜底：任何未捕获的异常都要显示在界面上，而不是静默消失（GUI 没有控制台可看）
+window.addEventListener('error', (e) => {
+  addEv('err', '页面异常: ' + (e.message || e.error));
+});
+window.addEventListener('unhandledrejection', (e) => {
+  addEv('err', '未处理的 Promise 拒绝: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+
+boot().catch(e => { addEv('err', '初始化失败: ' + e); });
+</script>
+</body>
+</html>

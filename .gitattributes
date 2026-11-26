@@ -1,0 +1,35 @@
+# 统一用 LF。
+# Windows 上 core.autocrlf 默认会把文本转成 CRLF，而：
+#   · gofmt 会对 CRLF 报错
+#   · Linux CI 上的 shell 脚本会因 \r 挂掉
+#   · Python 的 open(newline="\n") 写出来的文件会被再次改写
+* text=auto eol=lf
+
+# 二进制：不要做任何转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.exe  binary
+*.dll  binary
+*.bin  binary
+
+# 这些必须严格 LF（显式写出来，避免 future 的 .gitattributes 改动误伤）
+*.py    text eol=lf
+*.go    text eol=lf
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.sh    text eol=lf
+*.ps1   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.jsonl text eol=lf
+*.md    text eol=lf
+*.svg   text eol=lf
+*.toml  text eol=lf
+
+# 测试夹具与快照：GitHub 的 diff 展示依赖这个
+tests/fixtures/* linguist-vendored=false
+assets/demo.svg  linguist-documentation=false

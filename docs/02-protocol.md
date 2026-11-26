@@ -12,7 +12,9 @@
 | `status` | `phase` | 多次 | 生命周期与用量 |
 | `thinking` | `text` | 0..n | 思考增量 |
 | `text` | `text` | 0..n | 正文增量 |
-| `tool` | 版本相关 | 0..n | 工具调用，字段按原样透传 |
+| `tool_call` | `callId`, `tool` | 0..n | 工具调用开始。`input` 是该工具入参，形状随工具而定 |
+| `tool_result` | `callId`, `status` | 0..n | 与 `tool_call` 用 `callId` 配对。`result` 可能是字符串或对象 |
+| ~~`tool`~~ | — | 0 | **已废弃**：0.2.1-rc.2 实测不再发送，仅为向后兼容保留在 schema 里 |
 | `final` | `text` | 1（正常结束） | 最终答案 |
 
 客户端额外可能产出两种**本地合成**事件（不来自 dsh，用于错误处理）：
@@ -65,7 +67,18 @@ turn_start ──► step_start ──► step_end ──► … ──► turn_
 {"type":"final","text":"OK"}
 ```
 
-带工具调用的运行会在 `step_start` 与 `step_end` 之间插入 `tool` 与更多 `text` 增量；`thinking` 可能为空串（关闭思考时），也会出现多次。
+带工具调用的运行会在 `step_start` 与 `step_end` 之间插入 `tool_call` / `tool_result` 与更多 `text` 增量；`thinking` 可能为空串（关闭思考时），也会出现多次。
+
+实测（`0.2.1-rc.2`，`tests/fixtures/live_tool.jsonl`）：
+
+```json
+{"type":"tool_call","callId":"call_00_ET_Nr1HfySVuMRFuFfCxuyq0673","tool":"pwsh","input":{"description":"Run Write-Output hi","command":"Write-Output 'hi'"}}
+{"type":"tool_result","callId":"call_00_ET_Nr1HfySVuMRFuFfCxuyq0673","status":"completed","result":"hi\r\n"}
+```
+
+> **踩过的坑**：本文件早期版本把工具事件写成单一 `type: "tool"`，与 0.2.1-rc.2 的实际输出不符。
+> 按旧写法写的 UI 永远不会命中 `type === "tool"`，工具调用会**整段静默消失**。
+> 现在由 `tests/test_protocol_live.py` 拿真实抓包做回归，防止再次漂移。
 
 ## 四、三条不变量（回归测试就在验这三条）
 
@@ -106,7 +119,7 @@ dsh 目前是 `0.2.1-rc.2`。协议策略按「向后兼容优先」对待：
 | 新增 `type` | **忽略未知类型**（默认分支不做事） |
 | 新增字段 | 忽略未知字段（schema 里 `additionalProperties: true`） |
 | 字段改名/删除 | 视为主版本变更，跟进 schema 更新 |
-| `tool` 事件字段变动 | 按原样透传，不做结构假设 |
+| `tool_call` / `tool_result` 字段变动 | 视为协议变更：`callId` 与 `status` 是约定字段，其余按原样透传 |
 
 自查命令：
 

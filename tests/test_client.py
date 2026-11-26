@@ -208,8 +208,49 @@ def test_tool_event_passthrough() -> None:
         turn = client().ask("use a tool")
     finally:
         os.environ.pop("FAKE_DSH_TOOL", None)
-    tools = turn.events_of("tool")
-    assert tools and tools[0]["name"] == "fake_tool", "tool 事件应按原样透传"
+    # dsh 0.2.1-rc.2 实测发的是 tool_call / tool_result（不是单一 tool）
+    calls = turn.events_of("tool_call")
+    results = turn.events_of("tool_result")
+    assert calls and results, "应同时收到 tool_call 与 tool_result"
+    assert calls[0]["tool"] == "pwsh", "tool 名应原样透传"
+    assert calls[0]["callId"] == results[0]["callId"], "两条必须用 callId 配对"
+    assert results[0]["status"] == "completed"
+
+
+def test_idle_timeout_detects_stall() -> None:
+    """进程活着但一个字都不吐 —— 必须判为「挂起」，不是「慢」。
+
+    真实案例：dsh-tui profile + --json -，180 s 无输出。
+    """
+    fresh_state()
+    os.environ["FAKE_DSH_STALL"] = "1"
+    try:
+        started = time.time()
+        try:
+            client(idle_timeout=1.0, timeout=60).ask("stall")
+        except DshError as exc:
+            assert exc.kind == "idle", "应报 idle（挂起），实际 %r: %s" % (exc.kind, exc)
+        else:
+            raise AssertionError("挂起必须报错")
+        elapsed = time.time() - started
+        assert elapsed < 15, "空闲超时没生效，等了 %.0fs" % elapsed
+    finally:
+        os.environ.pop("FAKE_DSH_STALL", None)
+
+
+def test_idle_timeout_off_by_default() -> None:
+    """不设 idle_timeout 时，挂起只能靠总超时收场（不误报 idle）。"""
+    fresh_state()
+    os.environ["FAKE_DSH_STALL"] = "1"
+    try:
+        try:
+            client(timeout=2).ask("stall")
+        except DshError as exc:
+            assert exc.kind == "timeout", "默认应报 timeout，实际 %r" % exc.kind
+        else:
+            raise AssertionError("应超时")
+    finally:
+        os.environ.pop("FAKE_DSH_STALL", None)
 
 
 # --------------------------------------------------------------------------- #

@@ -1,0 +1,16 @@
+# 把 @deepseek-ai/dsh-headless 默认关闭的凭证能力开回来。
+#
+# 症状（2026-11-25 实测）：
+#   echo 'reply with OK' | dsh --profile headless --json -
+#   → {"type":"status","phase":"turn_end","reason":{"kind":"error",
+#       "error":{"code":"MISSING_CREDENTIAL"}}}
+#   → {"type":"final","text":""}
+#
+# 用法（--patch 是启动器 flag，必须写在 app 参数之前）：
+#   dsh --patch configs/cred.patch.yml --profile headless --json -
+#
+# 常驻：把下面两条粘进 ~/.dsh/profiles/<name>/cordis.patch.yml
+- id: credentials
+  disabled: false
+- id: authorization
+  disabled: false

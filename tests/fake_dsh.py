@@ -174,7 +174,13 @@ def main(argv) -> int:
         sys.stdout.flush()
 
     if os.environ.get("FAKE_DSH_TOOL"):
-        emit({"type": "tool", "name": "fake_tool", "input": {"path": "a.txt"}})
+        # 真实形状（dsh 0.2.1-rc.2 实测）：tool_call + tool_result 两条，
+        # 用 callId 配对。旧版文档写的单一 `tool` 类型已经不再发送。
+        call_id = "call_fake_0001"
+        emit({"type": "tool_call", "callId": call_id, "tool": "pwsh",
+              "input": {"description": "fake tool", "command": "Write-Output hi"}})
+        emit({"type": "tool_result", "callId": call_id, "status": "completed",
+              "result": "hi\r\n"})
 
     for i in range(0, len(answer), 4):
         emit({"type": "text", "text": answer[i:i + 4]})

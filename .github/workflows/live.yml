@@ -1,0 +1,70 @@
+# 真 dsh 冒烟 —— 唯一能发现「dsh 升级改了协议」的机制。
+#
+# 为什么单独一个 workflow（docs/09-issues.md E2）：
+#   主 CI 全是离线 + fake_dsh，跑得快但永远看不到真 dsh 的行为。
+#   实测踩过的坑：headless bundle 默认关掉凭证 -> MISSING_CREDENTIAL，
+#   离线测试永远抓不到，只有真 dsh 才暴露。
+#
+# 需要仓库 secret：DEEPSEEK_API_KEY
+#   没有 secret 时本工作流自动跳过（不失败），避免 fork 后满屏红灯。
+
+name: live
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"      # 每天 UTC 02:00 / 北京 10:00
+
+concurrency:
+  group: live-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live:
+    name: 真 dsh 协议冒烟
+    runs-on: windows-latest
+    timeout-minutes: 20
+    # job 级 env 才能被 step 的 if 读取（step 级 env 求值晚于 if）
+    env:
+      HAS_KEY: ${{ secrets.DEEPSEEK_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: 安装 dsh
+        run: npm install -g @deepseek-ai/dsh@0.2.1-rc.2
+
+      - name: 版本与凭证补丁结构自检（不需要 key）
+        shell: pwsh
+        run: |
+          dsh --version
+          $tree = dsh --profile headless --dump-config
+          if (-not ($tree -match 'id: credentials')) {
+            Write-Error "headless 树里已经没有 credentials 条目，configs/cred.patch.yml 失效"
+          }
+          if (-not ($tree -match 'id: authorization')) {
+            Write-Error "headless 树里已经没有 authorization 条目"
+          }
+          Write-Host "凭证条目仍在，补丁可用"
+
+      - name: 协议一致性（真 dsh + 凭证补丁）
+        if: ${{ env.HAS_KEY == 'true' }}
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        shell: pwsh
+        run: python tests/conformance.py --live --profile headless --patch configs/cred.patch.yml
+
+      - name: 文档漂移（包里条目数 vs docs/03）
+        shell: pwsh
+        run: python tests/check_docs_drift.py
+
+      - name: 没有 key 时的提示
+        if: ${{ env.HAS_KEY != 'true' }}
+        run: echo "仓库没有 DEEPSEEK_API_KEY secret，跳过真模型调用（结构自检与漂移检查已跑）"
