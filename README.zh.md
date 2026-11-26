@@ -1,5 +1,8 @@
 # 让 AI 写的代码，自己证明它对
 
+> **Claude「Install as app」的开源实现** —— 同样的内核思路（AI 产出变成真正的桌面应用，
+> 不打包、不签名），补上所有实现都缺的那块：**证明这段代是对的**。
+>
 > AI 写代码最大的问题不是「写不出来」，是**「你不知道它写对了没有」**。
 > 一个永远绿的测试什么都没测 —— 而 AI 写的测试，大多数永远绿。
 > 这个项目加第二把锁：**变异测试**，用来发现你的断言到底能不能被骗。
@@ -34,6 +37,25 @@ dsh-agent-kit demo      # 60 秒 · 零依赖 · 不用 API key · 不联网 · 
 - **11 项**质量闸门，全部可复现：pytest / conformance / 18 条负样本 / 6 个变异 / 6 个示例 /
   文档漂移 / Node 10 / Go 8 / protocol_live 6
 - **35 秒**：scaffold → 是红的 → agent 自己实现 → `2/2 用例 + 变异 4/4` → 自证成立
+
+## 和 Claude 「Install as app」的关系
+
+Anthropic 在 2026 年 11 月上线了 [Install as app](https://claude.com/resources/articles/install-as-app)：
+跟 Claude 描述一个应用 → 得到 artifact → 点一下 → 它变成 Mac/Windows 上的独立窗口。
+不用打包、不用签名、不用 API key —— 因为宿主本身已经签过名，artifact 只是数据。
+
+**这个项目就是那个思路的开源实现**，只多加了一样东西。
+
+| | Claude · Install as app | 本项目 |
+|---|---|---|
+| 宿主 | Claude 桌面客户端（已签名、必须在线、绑 Claude 账号） | 你自己的 7.6 MB Go + WebView2 二进制 |
+| 你造的东西 | 一个 artifact（HTML/JS） | 一个文件夹：`logic.py` + `cases.json` |
+| 怎么知道它对了 | 你跑一遍，用眼睛看 | 用例全绿 **且** 变异全抓 |
+| 要不要账号 / 联网 | 要 | 不要 |
+| 交付给别人 | 对方得有 Claude | 把文件夹发过去，他跑 `verify.py` |
+
+最后两行不是功能清单，是**结构性差别**。Claude 那版跨不出账号边界；这版做不到他们那种
+"零配置"的顺滑。按你需要选。
 
 ## 它不是
 
