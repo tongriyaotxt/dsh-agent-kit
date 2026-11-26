@@ -56,7 +56,8 @@ jobs:
 
   node:
     name: node ${{ matrix.node }}
-    runs-on: ubuntu-latest    strategy:
+    runs-on: ubuntu-latest
+    strategy:
       fail-fast: false
       matrix:
         node: ["18", "20", "22"]
