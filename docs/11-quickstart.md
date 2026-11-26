@@ -9,8 +9,8 @@
 ## 第 0 步 · 一条命令生成骨架
 
 ```bash
-export PYTHONPATH=/path/to/dsh-agent-kit/python      # Windows: $env:PYTHONPATH = "..."
-python -m dsh_agent_kit.scaffold 发票统计 --desc "按月统计发票总额"
+export PYTHONPATH=/path/to/qed/python      # Windows: $env:PYTHONPATH = "..."
+python -m qed.scaffold 发票统计 --desc "按月统计发票总额"
 ```
 
 生成的是**四件套 + 数据目录**：
@@ -45,7 +45,7 @@ python verify.py
 
 ```bash
 # 一个终端起 broker（凭证隔离，见 docs/10）
-python -m dsh_agent_kit.broker --port 8787
+python -m qed.broker --port 8787
 
 # 另一个终端，在 app 目录里
 dsh --patch <kit>/configs/broker.patch.yml --profile headless \
@@ -93,7 +93,7 @@ python verify.py --mutate   # 用例绿了，再验断言不是摆设
 
 | 手段 | 文件 | 效果 |
 |---|---|---|
-| 凭证不进磁盘 | `configs/broker.patch.yml` + `dsh_agent_kit.broker` | agent 读遍磁盘只有占位符 |
+| 凭证不进磁盘 | `configs/broker.patch.yml` + `qed.broker` | agent 读遍磁盘只有占位符 |
 | 只写本目录 | `DSH_PERMISSION_MODE=workspace-write` | 写边界收在 app 目录 |
 | 关外联 | `configs/lockdown.patch.yml` | `web_search` / `web_fetch` 不存在 |
 | 逻辑沙箱 | `verify.LocalCtx` | 自证时代码只能碰 `data/ out/ state/` |

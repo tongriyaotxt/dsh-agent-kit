@@ -1,4 +1,4 @@
-module dshapps
+module qed-host
 
 go 1.27.3
 

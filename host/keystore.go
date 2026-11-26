@@ -23,7 +23,7 @@ func keystorePath() string {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, ".local", "share")
 	}
-	return filepath.Join(base, "dshapps", "secret.bin")
+	return filepath.Join(base, "qed", "secret.bin")
 }
 
 func credentialsPath() string {
@@ -90,7 +90,7 @@ func inspectCredentials() credentialState {
 	if loadStoredKey() != "" {
 		st.InStore = true
 	}
-	if backups, err := filepath.Glob(path + ".bak-dshapps-*"); err == nil {
+	if backups, err := filepath.Glob(path + ".bak-qed-*"); err == nil {
 		st.Backups = len(backups)
 	}
 	return st
@@ -173,7 +173,7 @@ func migrateKeyToStore() (backupPath string, err error) {
 	if err := saveStoredKey(key); err != nil {
 		return "", fmt.Errorf("写入密钥库失败（文件未改动）: %w", err)
 	}
-	backupPath = fmt.Sprintf("%s.bak-dshapps-%s", path, time.Now().Format("20060102-150405"))
+	backupPath = fmt.Sprintf("%s.bak-qed-%s", path, time.Now().Format("20060102-150405"))
 	if err := os.WriteFile(backupPath, raw, 0o600); err != nil {
 		return "", fmt.Errorf("备份失败（文件未改动）: %w", err)
 	}
@@ -207,7 +207,7 @@ func migrateKeyToStore() (backupPath string, err error) {
 // restoreLatestBackup 恢复最近一次迁移。给「后悔」用。
 func restoreLatestBackup() (string, error) {
 	path := credentialsPath()
-	backups, err := filepath.Glob(path + ".bak-dshapps-*")
+	backups, err := filepath.Glob(path + ".bak-qed-*")
 	if err != nil || len(backups) == 0 {
 		return "", fmt.Errorf("没有找到备份")
 	}

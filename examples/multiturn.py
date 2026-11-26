@@ -13,7 +13,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "python"))
 
-from dsh_agent_kit import DshClient, DshError  # noqa: E402
+from qed import DshClient, DshError  # noqa: E402
 
 
 def main() -> int:

@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "python"))
 
-from dsh_agent_kit import scaffold, verify  # noqa: E402
+from qed import scaffold, verify  # noqa: E402
 
 GOOD_LOGIC = '''
 def run(input, ctx):

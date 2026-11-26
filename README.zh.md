@@ -1,25 +1,28 @@
 # 让 AI 写的代码，自己证明它对
 
+> **`qed`** —— *quod erat demonstrandum*，数学证明写完后画的那个句号。
+> agent 说「做完了」；这里是「做完了」第一次必须带证据的地方。
+>
 > **Claude「Install as app」的开源实现** —— 同样的内核思路（AI 产出变成真正的桌面应用，
-> 不打包、不签名），补上所有实现都缺的那块：**证明这段代是对的**。
+> 不打包、不签名），补上所有实现都缺的那块：**证明这段代码是对的**。
 >
 > AI 写代码最大的问题不是「写不出来」，是**「你不知道它写对了没有」**。
 > 一个永远绿的测试什么都没测 —— 而 AI 写的测试，大多数永远绿。
 > 这个项目加第二把锁：**变异测试**，用来发现你的断言到底能不能被骗。
 
 ```bash
-git clone https://github.com/tongriyaotxt/dsh-agent-kit
-pip install -e dsh-agent-kit/python
-dsh-agent-kit demo      # 60 秒 · 零依赖 · 不用 API key · 不联网 · 全程真实执行
+git clone https://github.com/tongriyaotxt/qed
+pip install -e qed/python
+qed demo      # 60 秒 · 零依赖 · 不用 API key · 不联网 · 全程真实执行
 ```
 
-<sub>还没上 PyPI —— 上线后 `pip install dsh-agent-kit` 即可。</sub>
+<sub>还没上 PyPI —— 上线后 `pip install qed` 即可。</sub>
 
 <p align="center">
-  <img src="assets/demo.svg" alt="dsh-agent-kit demo：自证成立 → 断言放松 → 自证不成立" width="920">
+  <img src="assets/demo.svg" alt="qed demo：自证成立 → 断言放松 → 自证不成立" width="920">
 </p>
 
-<p align="center"><sub>这张图里的每一行，都是 <code>dsh-agent-kit demo</code> 真实跑出来的。</sub></p>
+<p align="center"><sub>这张图里的每一行，都是 <code>qed demo</code> 真实跑出来的。</sub></p>
 
 | | 普通单测 | AI 说「完成了」 | 本项目 |
 |---|---|---|---|
@@ -79,7 +82,7 @@ Anthropic 在 2026 年 11 月上线了 [Install as app](https://claude.com/resou
 |---|---|---|
 | **协议** | [`spec/events.schema.json`](spec/events.schema.json) + [`docs/02-protocol.md`](docs/02-protocol.md) | 事件流的权威定义与生命周期不变量 |
 | **客户端** | [`python/`](python/) · [`node/`](node/) | 零依赖实现（Popen / spawn + 逐行 JSON） |
-| **网关** | [`python/dsh_agent_kit/gateway.py`](python/dsh_agent_kit/gateway.py) | 一行命令把事件流转成 **SSE**，浏览器直接消费 |
+| **网关** | [`python/qed/gateway.py`](python/qed/gateway.py) | 一行命令把事件流转成 **SSE**，浏览器直接消费 |
 | **一致性测试** | [`tests/`](tests/) | 离线回归（零 token）+ 真实 dsh 校验（`--live`） |
 
 ---
@@ -89,7 +92,7 @@ Anthropic 在 2026 年 11 月上线了 [Install as app](https://claude.com/resou
 **Python**
 
 ```python
-from dsh_agent_kit import DshClient
+from qed import DshClient
 
 c = DshClient(cwd="/path/to/project")
 for ev in c.stream("解释这个仓库的构建流程"):
@@ -207,7 +210,7 @@ DshClient(strict=False).ask(...)               # 要「失败也拿到部分事�
 
 同一套参数在 Node 侧一一对应（`sessionId` / `patches` / `timeoutMs`）。
 
-**它替你挡掉的坑**（都在 [客户端源码](python/dsh_agent_kit/client.py) 里）：
+**它替你挡掉的坑**（都在 [客户端源码](python/qed/client.py) 里）：
 
 - Windows 上 `dsh` 是 `dsh.cmd`，直接 `Popen` 会 `FileNotFoundError` → `shutil.which` + `cmd /c` 包装；
 - 任务拼进命令行会被 shell 吃掉中文/引号/反斜杠/换行 → **任务永远走 stdin**，参数只留 `-`；
@@ -222,7 +225,7 @@ DshClient(strict=False).ask(...)               # 要「失败也拿到部分事�
 浏览器不能 spawn 进程，所以后端加一层 SSE 就行。仓库自带 **零依赖** 网关（stdlib `http.server`）：
 
 ```bash
-python -m dsh_agent_kit.gateway --port 8777 --cwd /path/to/project
+python -m qed.gateway --port 8777 --cwd /path/to/project
 # 打开 http://127.0.0.1:8777/  → 输入框里打字，答案流式返回
 ```
 
@@ -403,7 +406,7 @@ python tests/conformance.py --live
 ## 十、目录
 
 ```
-dsh-agent-kit/
+qed/
 ├── README.md                      ← 本文件（接入手册）
 ├── docs/
 │   ├── 01-architecture.md         三层接口的实测对比与选型
@@ -415,7 +418,7 @@ dsh-agent-kit/
 │   ├── 07-faq.md                  常见疑问
 │   └── 08-app-contract.md         应用侧要给 agent 的三件东西
 ├── spec/events.schema.json        事件流 JSON Schema
-├── python/dsh_agent_kit/          client.py · gateway.py（零依赖）
+├── python/qed/          client.py · gateway.py（零依赖）
 ├── node/                          dsh-client.mjs · sse-gateway.mjs
 ├── examples/                      hello · stream · multiturn · batch · 网关 · 浏览器
 ├── configs/                       mcp.patch.yml · profile-template/

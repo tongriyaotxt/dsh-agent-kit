@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "python"))
 
-from dsh_agent_kit import DshClient, DshError  # noqa: E402
+from qed import DshClient, DshError  # noqa: E402
 
 SCHEMA_PATH = os.path.join(ROOT, "spec", "events.schema.json")
 FIXTURE = os.path.join(HERE, "fixtures", "turn.jsonl")

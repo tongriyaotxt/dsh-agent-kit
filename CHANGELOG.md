@@ -1,17 +1,49 @@
 # Changelog
 
+## 1.10.0 — 2026-11-26
+
+改名：`dsh-agent-kit` → **`qed`**。
+
+### 为什么
+
+旧名字是三个词加连字符，像内部代号；`-agent-kit` 这个后缀在 GitHub 上有几千个，
+既不表意也不可记。参考高星项目的命名习惯（`uv` `bun` `ruff` `astro` `biome` `zed`
+`aider` `cline`），好名字通常满足：**短、可发音、能当动词、语义能承载叙事**。
+
+`qed` 是 *quod erat demonstrandum* —— 数学证明写完后画的那个句号。
+它和这个项目的核心承诺完全同构：**agent 说「做完了」，qed 让它「证毕」**。
+
+### 变更
+
+| 旧 | 新 |
+|---|---|
+| 仓库 / 项目名 `dsh-agent-kit` | `qed` |
+| PyPI 包 `dsh-agent-kit` | `qed-kit`（PyPI 上 `qed` 已被占） |
+| 命令 `dsh-agent-kit` | `qed` |
+| Python 包 `dsh_agent_kit` | `qed` |
+| `DSH_KIT_LAUNCHER` / `DSH_KIT_PYTHON` / `DSH_KIT_BROKER_URL` | `QED_LAUNCHER` / `QED_PYTHON` / `QED_BROKER_URL` |
+| `DSHAPPS_DEBUG` / `dshapps.exe` | `QED_DEBUG` / `qed.exe` |
+| go module `dshapps` | `qed-host` |
+
+`dsh` 本身（runtime 名）保持不变 —— 那是别人的产品，不跟着改。
+
+### 验证
+
+改名后 12 项 Python 闸门 + 8 条 Go 测试全绿；干净 venv 里
+`pip install -e . && qed --version && qed demo` 通过。
+
 ## 1.9.0 — 2026-11-26
 
 传播轮：把「路人 60 秒内相信你」这件事做成产品功能。
 
 ### 新增
 
-- **`dsh-agent-kit demo`**：60 秒演示，**零依赖 · 不联网 · 不用 API key · 不需要装 dsh**。
+- **`qed demo`**：60 秒演示，**零依赖 · 不联网 · 不用 API key · 不需要装 dsh**。
   全程真实执行（scaffold → 红 → 写实现 → 2/2 + 变异 4/4 → 自证成立），
   最后一步故意**把断言放松**，展示「变异逃逸 → 自证不成立」。
   这是整个仓库对外的第一屏：看到它的人 99% 没装 dsh，不能要求他先配环境。
-- **`dsh-agent-kit` CLI**（`python/dsh_agent_kit/cli.py`）：`demo` / `scaffold` / `verify` / `gateway`
-  四个子命令，参数完全透传，和 `python -m dsh_agent_kit.xxx` 行为一致。
+- **`qed` CLI**（`python/qed/cli.py`）：`demo` / `scaffold` / `verify` / `gateway`
+  四个子命令，参数完全透传，和 `python -m qed.xxx` 行为一致。
 - **`assets/demo.svg`**：手写终端风格首屏图（无字体依赖风险，GitHub 直接渲染）。
   之前仓库里**零图片零视频** —— GitHub 上没人会为了理解你去读 300 行。
 - **README 重写**：
@@ -31,7 +63,7 @@
 ### 实测
 
 ```
-$ python -m dsh_agent_kit.demo --fast
+$ python -m qed.demo --fast
 [4/5] 发票统计 · 2/2 用例通过 · 变异 4/4 被抓 → 自证成立 ✓
 [5/5] 弱断言示例 · 1/1 用例通过 · 变异 1/2 被抓 → 自证不成立：1/2 变异逃逸
 ```
@@ -45,7 +77,7 @@ $ python -m dsh_agent_kit.demo --fast
 ### 新增
 
 - **`host/keystore.go` + `host/secret_windows.go`**：宿主密钥库
-  - Windows DPAPI（`CryptProtectData`）加密存 key，落到 `%LOCALAPPDATA%\dshapps\secret.bin`
+  - Windows DPAPI（`CryptProtectData`）加密存 key，落到 `%LOCALAPPDATA%\qed\secret.bin`
   - `readRealKey()` 顺序改为：密钥库 > 环境变量 > 明文文件
   - 迁移是**行级替换**（只改 `refs.DEEPSEEK_API_KEY` 那一行），
     `records` 段一字不动 —— grant 的 payload 只有它的拥有者能解释，重写等于毁别人数据
@@ -76,7 +108,7 @@ $ python -m dsh_agent_kit.demo --fast
 
 ```
 点空状态「让 AI 自己写实现并自证」
-→ _START（命令行里带 --patch ...dshapps-sandbox.patch.yml）
+→ _START（命令行里带 --patch ...qed-sandbox.patch.yml）
 → SESSION → THINKING → TOOL_CALL read ×2 → TOOL_RESULT（读到 AGENT_RULES.md）
 ```
 
@@ -130,7 +162,7 @@ broker 就绪 127.0.0.1:56531 → broker: POST /anthropic/v1/messages → _end c
   - 一次任务：`spawn dsh --profile <app> --json -`，cwd = app 目录，
     `DSH_PERMISSION_MODE` 取自 `app.json`
   - NDJSON 逐行经 `window.__onEvent` 推给 UI；`tool_call` / `tool_result` / `final` / `_raw` / `_stderr` 全渲染
-  - `-cred` / `-root` 可配；`DSHAPPS_DEBUG=1` 写日志到 `%TEMP%\dshapps.log`
+  - `-cred` / `-root` 可配；`QED_DEBUG=1` 写日志到 `%TEMP%\qed.log`
 - **`scaffold` 现在会建 dsh profile**：`~/.dsh/profiles/app-<slug>/`
   （bundle = base + headless，patch 里开凭证 + 关 web）。
   没有它 `dsh --profile app-xxx` 直接 `profile not found`，新 app 等于跑不起来。
@@ -152,7 +184,7 @@ broker 就绪 127.0.0.1:56531 → broker: POST /anthropic/v1/messages → _end c
 ### 实测
 
 ```
-dshapps.exe -root F:\...\_slice
+qed.exe -root F:\...\_slice
 → 窗口 500 ms 出现，3.4 MB
 → 点「发送」→ _START / SESSION / THINKING / 正文流 / TOOL_CALL / TOOL_RESULT
 → 输出「发票统计 · 2/2 用例通过 · 变异 4/4 被抓 · 自证成立 ✓」
@@ -167,7 +199,7 @@ dshapps.exe -root F:\...\_slice
 
 ### 新增
 
-- **`python/dsh_agent_kit/guard.py`**：`ProfileGuard` —— profile 指纹 + 收窄只读 + 前后比对。
+- **`python/qed/guard.py`**：`ProfileGuard` —— profile 指纹 + 收窄只读 + 前后比对。
   - `fingerprint()`：对 5 个能力声明文件算 sha256，排除 `node_modules` / `*.bak-*` / `.rollback-*`
   - `diff()`：输出 `+ 新增` / `- 删除` / `~ 修改`
   - `set_readonly()`：只锁 `package.json` + `cordis.patch.yml`
@@ -257,14 +289,14 @@ v0.1 内核：自证 runner + 脚手架，**垂直切片首次跑通**（agent �
 
 ### 新增
 
-- **`python/dsh_agent_kit/verify.py`**：自证 runner。
+- **`python/qed/verify.py`**：自证 runner。
   - `run_cases()`：逐条比对 `cases.json`，输出 `N/M 用例通过` + 每条差异
   - `run_mutations()`：往 `logic.py` 注入 11 类变异，要求每条用例集都能变红；
     列出**逃逸的变异**并提示"断言太弱"
   - `LocalCtx`：执行 AI 写的代码时的受限上下文 —— 只能读写 `data/ out/ state/`，
     越界抛 `CtxError`；不提供网络 / 子进程 / 环境变量
-  - CLI：`python -m dsh_agent_kit.verify --app <dir> [--mutate] [--json]`
-- **`python/dsh_agent_kit/scaffold.py`**：一条命令生成 app 四件套
+  - CLI：`python -m qed.verify --app <dir> [--mutate] [--json]`
+- **`python/qed/scaffold.py`**：一条命令生成 app 四件套
   （`app.json` / `AGENT_RULES.md` / `logic.py` / `cases.json` / `verify.py` / `说明.md` / `state/ data/ out/ outbox/`）。
   **刻意生成"红"的项目**：stub 返回 `{"todo": True}`，一跑就红。
 - **`docs/11-quickstart.md`**：五分钟路径，含"什么才算做完了"的四态表。
@@ -299,7 +331,7 @@ dsh 自己做（35 s，workspace-write + broker）
 
 ### 新增
 
-- **`python/dsh_agent_kit/broker.py`**：凭证 broker（本地 LLM 代理，零依赖）。
+- **`python/qed/broker.py`**：凭证 broker（本地 LLM 代理，零依赖）。
   key 只在宿主进程内存，dsh 通过 `baseURL` 指向它并持有占位符；转发时注入真 key。
   支持 SSE 逐块透传与 usage 抽取，`stop()` 主动抹掉内存引用。
 - **`configs/broker.patch.yml`**：把 `llm-deepseek` 指向 broker（`baseURL` + `apiKeyEnv`）。
@@ -337,7 +369,7 @@ dsh 自己做（35 s，workspace-write + broker）
 - `.github/workflows/live.yml`：真 dsh 冒烟（每日 + 手动），含凭证条目结构自检；
   没有 `DEEPSEEK_API_KEY` secret 时优雅跳过。
 - `configs/cred.patch.yml`：打开 `headless` bundle 默认关闭的 `credentials` / `authorization`。
-- `DSH_KIT_LAUNCHER` 环境变量：Python 与 Node 客户端行为一致，用 JSON 数组整段替换启动前缀
+- `QED_LAUNCHER` 环境变量：Python 与 Node 客户端行为一致，用 JSON 数组整段替换启动前缀
   （CI 接 fake dsh、无 dsh 机器上做演示）。
 - `docs/09-issues.md`：76 条问题清单（P0 12 / P1 36 / P2 24 / P3 4），到商业标准为止的权威 backlog。
 
@@ -363,9 +395,9 @@ dsh 自己做（35 s，workspace-write + broker）
 
 - **协议规范** `spec/events.schema.json`：事件流的机器可读定义（draft 2020-12），
   含 `session / status / thinking / text / tool / final` 与本地合成的 `_raw / error`。
-- **Python 客户端** `python/dsh_agent_kit/client.py`：零依赖，`stream()` / `ask()` / 会话续接 /
+- **Python 客户端** `python/qed/client.py`：零依赖，`stream()` / `ask()` / 会话续接 /
   自己实现的 deadline / stderr 分流 / 子进程环境摘除 `DSH_*` 会话变量。
-- **Python SSE 网关** `python/dsh_agent_kit/gateway.py`：stdlib `ThreadingHTTPServer`，
+- **Python SSE 网关** `python/qed/gateway.py`：stdlib `ThreadingHTTPServer`，
   手写 chunked 帧、CORS、cwd 白名单、token 门禁、并发信号量、内置 demo 页、可选 jsonl 审计。
 - **Node 客户端与网关** `node/dsh-client.mjs`、`node/sse-gateway.mjs`：行为与 Python 一一对应。
 - **离线回归** `tests/fake_dsh.py`：行为级 dsh 替身（严格解析 argv 顺序、真实事件序、

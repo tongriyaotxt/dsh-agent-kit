@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// sse-gateway.mjs — Node 版零依赖 SSE 网关（与 python/dsh_agent_kit/gateway.py 对齐）
+// sse-gateway.mjs — Node 版零依赖 SSE 网关（与 python/qed/gateway.py 对齐）
 //
 //   node node/sse-gateway.mjs --port 8778 --cwd /path/to/project
 //   GET  /         内置单页 demo
@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { DshClient, DEFAULT_PROFILE } from "./dsh-client.mjs";
 
 const DEMO_HTML = `<!doctype html><html lang="zh"><head><meta charset="utf-8">
-<title>dsh-agent-kit · node SSE demo</title>
+<title>qed · node SSE demo</title>
 <style>
  :root{color-scheme:dark}
  body{margin:0;font:14px/1.6 ui-monospace,Menlo,monospace;background:#0d1117;color:#c9d1d9}
@@ -26,7 +26,7 @@ const DEMO_HTML = `<!doctype html><html lang="zh"><head><meta charset="utf-8">
  #out{white-space:pre-wrap;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;min-height:180px}
  #cost{color:#8b949e;font-size:12px}
 </style></head><body>
-<header><b>dsh-agent-kit</b><span id="meta"></span></header>
+<header><b>qed</b><span id="meta"></span></header>
 <main>
   <textarea id="task" placeholder="输入任务"></textarea>
   <div><button id="go">运行</button></div>
@@ -239,7 +239,7 @@ if (isMain) {
   const port = args.port ?? 8778;
   server.listen(port, host, () => {
     const actual = server.address().port;
-    console.error(`dsh-agent-kit node gateway -> http://${host}:${actual}/  (profile=${args.profile ?? DEFAULT_PROFILE}, cwd=${path.resolve(args.cwd ?? process.cwd())}${args.token ? ", token required" : ""})`);
+    console.error(`qed node gateway -> http://${host}:${actual}/  (profile=${args.profile ?? DEFAULT_PROFILE}, cwd=${path.resolve(args.cwd ?? process.cwd())}${args.token ? ", token required" : ""})`);
   });
   const stop = () => server.close(() => process.exit(0));
   process.on("SIGINT", stop);

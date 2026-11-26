@@ -3,13 +3,13 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dsh-agent-kit"
+name = "qed-kit"
 version = "1.9.0"
-description = "Self-proof for AI-written code: cases green + mutations caught"
+description = "Make AI-written code prove itself: cases pass AND mutations get caught."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "dsh-agent-kit contributors" }]
+authors = [{ name = "qed contributors" }]
 keywords = ["ai", "mutation-testing", "self-verification", "agent", "dsh", "jsonl"]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -19,14 +19,14 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tongriyaotxt/dsh-agent-kit"
+Homepage = "https://github.com/tongriyaotxt/qed"
 
 [project.scripts]
-dsh-agent-kit = "dsh_agent_kit.cli:main"
-dsh-agent-gateway = "dsh_agent_kit.gateway:main"
+qed = "qed.cli:main"
+qed-gateway = "qed.gateway:main"
 
 [tool.setuptools]
-packages = ["dsh_agent_kit"]
+packages = ["qed"]
 
 [tool.pytest.ini_options]
 testpaths = ["../tests"]

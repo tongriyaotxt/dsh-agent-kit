@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "python"))
 
-from dsh_agent_kit.broker import PLACEHOLDER_KEY, Broker  # noqa: E402
+from qed.broker import PLACEHOLDER_KEY, Broker  # noqa: E402
 
 REAL_KEY = "sk-real-secret-0123456789"
 SEEN_KEYS = []

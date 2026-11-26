@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/tongriyaotxt/dsh-agent-kit/spec/events.schema.json",
+  "$id": "https://github.com/tongriyaotxt/qed/spec/events.schema.json",
   "title": "DSH headless JSONL event",
   "description": "One line of `dsh --profile <name> --json -` stdout. The stream is newline-delimited: each stdout line is exactly one object matching this schema. Diagnostics never appear here (they go to stderr). Events of types added by future dsh versions must be tolerated by consumers: unknown `type` means 'ignore this line', and unknown properties must be ignored.",
   "type": "object",

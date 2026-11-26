@@ -112,7 +112,7 @@ def main(argv=None):
     verbose = "-v" in argv
 
     survivors = []
-    with tempfile.TemporaryDirectory(prefix="dshkit-mutate-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="qed-mutate-") as tmp:
         work = Path(tmp) / "proj"
         copy_project(work)
 

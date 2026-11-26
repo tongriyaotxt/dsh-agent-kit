@@ -31,7 +31,7 @@
   <div class="meta" id="meta">未连接</div>
 </main>
 <script>
-// 与 python/dsh_agent_kit/gateway.py 或 node/sse-gateway.mjs 对接
+// 与 python/qed/gateway.py 或 node/sse-gateway.mjs 对接
 const BASE = new URLSearchParams(location.search).get("base") || "http://127.0.0.1:8777";
 const TOKEN = new URLSearchParams(location.search).get("token") || "";
 const out = document.querySelector("#out");

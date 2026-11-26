@@ -6,7 +6,7 @@
     它一旦坏掉，别人拿到的是坏代码。
 
 做法：
-    用 DSH_KIT_LAUNCHER 把启动器换成 tests/fake_dsh.py（零 token、不装 dsh），
+    用 QED_LAUNCHER 把启动器换成 tests/fake_dsh.py（零 token、不装 dsh），
     每个示例跑一遍，断言 exit 0 且输出里有可验证的字符串。
 
 跑法：
@@ -27,7 +27,7 @@ FAKE = ROOT / "tests" / "fake_dsh.py"
 def launcher_env() -> dict:
     env = dict(os.environ)
     env["PYTHONIOENCODING"] = "utf-8"
-    env["DSH_KIT_LAUNCHER"] = __import__("json").dumps(
+    env["QED_LAUNCHER"] = __import__("json").dumps(
         [sys.executable, str(FAKE)]
     )
     return env

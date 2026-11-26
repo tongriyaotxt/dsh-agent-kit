@@ -16,9 +16,9 @@ import { createGateway } from "../node/sse-gateway.mjs";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.dirname(HERE);
 const FAKE = path.join(HERE, "fake_dsh.py");
-const PY = process.env.DSH_KIT_PYTHON || (process.platform === "win32" ? "python" : "python3");
+const PY = process.env.QED_PYTHON || (process.platform === "win32" ? "python" : "python3");
 const LAUNCHER = [PY, FAKE];
-const STATE = path.join(os.tmpdir(), "dsh-agent-kit-node-tests");
+const STATE = path.join(os.tmpdir(), "qed-node-tests");
 
 const freshState = () => {
   fs.rmSync(STATE, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 // 内嵌凭证 broker：宿主自己就是那个「持有真 key 的人」。
 //
-// 为什么不做成外部依赖（Python 的 dsh_agent_kit.broker）：
+// 为什么不做成外部依赖（Python 的 qed.broker）：
 //   宿主是单文件 exe，拉一个 Python 进程进来就破坏了这个前提。
 //   Go 标准库的 httputil.ReverseProxy 正好够用，且天然支持流式。
 //
@@ -141,8 +141,8 @@ func (b *credentialBroker) close() {
 // 「存储文件 > 启动环境 > .env」，所以只要存储文件里是占位符，agent 就算自己
 // export 一个环境变量也盖不过它。
 func writeSandboxPatch(dir string, brokerURL string) (patchPath string, err error) {
-	fakeCreds := filepath.Join(dir, "dshapps-creds.yml")
-	creds := "# 由 dshapps 生成的占位符凭据：真 key 不在磁盘上\n" +
+	fakeCreds := filepath.Join(dir, "qed-creds.yml")
+	creds := "# 由 qed 生成的占位符凭据：真 key 不在磁盘上\n" +
 		"version: 1\nrefs:\n  DEEPSEEK_API_KEY: " + placeholderKey + "\n"
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
@@ -152,7 +152,7 @@ func writeSandboxPatch(dir string, brokerURL string) (patchPath string, err erro
 	}
 
 	patch := strings.Join([]string{
-		"# 由 dshapps 自动生成",
+		"# 由 qed 自动生成",
 		"- id: credentials",
 		"  config:",
 		"    path: " + strings.ReplaceAll(fakeCreds, "\\", "/"),
@@ -161,7 +161,7 @@ func writeSandboxPatch(dir string, brokerURL string) (patchPath string, err erro
 		"    baseURL: " + brokerURL,
 		"",
 	}, "\n")
-	patchPath = filepath.Join(dir, "dshapps-sandbox.patch.yml")
+	patchPath = filepath.Join(dir, "qed-sandbox.patch.yml")
 	if err := os.WriteFile(patchPath, []byte(patch), 0o600); err != nil {
 		return "", err
 	}

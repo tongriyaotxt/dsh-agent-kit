@@ -23,9 +23,9 @@ def run_demo(*args):
     env["PYTHONPATH"] = os.path.join(ROOT, "python")
     env["PYTHONIOENCODING"] = "utf-8"
     env.pop("DEEPSEEK_API_KEY", None)      # 证明不需要 key
-    env.pop("DSH_KIT_LAUNCHER", None)
+    env.pop("QED_LAUNCHER", None)
     return subprocess.run(
-        [sys.executable, "-m", "dsh_agent_kit.demo", "--fast", "--no-color"] + list(args),
+        [sys.executable, "-m", "qed.demo", "--fast", "--no-color"] + list(args),
         cwd=ROOT, env=env, capture_output=True, text=True,
         encoding="utf-8", errors="replace", timeout=180,
     )
@@ -59,7 +59,7 @@ def test_demo_cleans_up():
     before = set(os.listdir(tempfile.gettempdir()))
     run_demo()
     after = set(os.listdir(tempfile.gettempdir()))
-    leftovers = [d for d in (after - before) if d.startswith("dshkit-demo-")]
+    leftovers = [d for d in (after - before) if d.startswith("qed-demo-")]
     assert not leftovers, "demo 没清理临时目录：%r" % leftovers
 
 

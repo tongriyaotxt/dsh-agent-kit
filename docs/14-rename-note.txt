@@ -1,0 +1,33 @@
+rename: dsh-agent-kit -> qed
+
+quod erat demonstrandum — the mark you put at the end of a proof.
+
+The old name was three hyphenated words that read like an internal codename, and
+"-agent-kit" is a suffix shared with thousands of repositories. It said nothing,
+was not memorable, and could not be said out loud.
+
+What changed
+------------
+  repo / project    dsh-agent-kit        -> qed
+  PyPI package      dsh-agent-kit        -> qed-kit      (qed is taken on PyPI)
+  command           dsh-agent-kit        -> qed
+  python package    dsh_agent_kit        -> qed
+  env vars          DSH_KIT_* / DSHAPPS_* -> QED_*
+  go module         dshapps              -> qed-host
+  executable        dshapps.exe          -> qed.exe
+
+`dsh` itself is unchanged — that is someone else's product name.
+
+Why this name
+-------------
+Compare with projects that got it right: uv, bun, ruff, astro, biome, zed, aider,
+cline. Short, pronounceable, usable as a verb, and the semantics carry the story.
+`qed` is the one mark that means "this is proved" — which is exactly what the two
+locks (cases green + mutations caught) are for.
+
+Verified after the rename
+-------------------------
+· 12 Python gates green (pytest 101, conformance, 18 negative samples, protocol_live,
+  mutate 6/6, examples 6/6, docs drift, node 10)
+· 8 Go tests green
+· clean venv: pip install -e . && qed --version && qed demo -> passes

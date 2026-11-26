@@ -1,4 +1,4 @@
-// dshapps —— 极简宿主：把 ~/apps/* 里的 app 列出来，点开就能跑。
+// qed —— 极简宿主：把 ~/apps/* 里的 app 列出来，点开就能跑。
 //
 // 设计约束（来自 docs/10 与 docs/11）：
 //   · 窗口用系统 WebView2，不打包 Chromium（实测 3 MB / 460 ms）
@@ -8,13 +8,13 @@
 //   · 失败要说人话：spawn 失败/退出码非 0 都要出现在 UI 里，不许静默
 //
 // 用法：
-//   go build -ldflags "-s -w -H windowsgui" -o dshapps.exe .
-//   dshapps.exe                      # 默认扫 ~/apps
-//   dshapps.exe -root D:\apps        # 指定根目录
+//   go build -ldflags "-s -w -H windowsgui" -o qed.exe .
+//   qed.exe                      # 默认扫 ~/apps
+//   qed.exe -root D:\apps        # 指定根目录
 //
 // 环境变量：
-//   DSH_KIT_CRED_PATCH   可选，指向 configs/cred.patch.yml（headless 需要）
-//   DSH_KIT_BROKER_URL   可选，走凭证 broker 时设置
+//   QED_CRED_PATCH   可选，指向 configs/cred.patch.yml（headless 需要）
+//   QED_BROKER_URL   可选，走凭证 broker 时设置
 package main
 
 import (
@@ -326,7 +326,7 @@ func (h *host) stop() map[string]any {
 // ---------------------------------------------------------------- main
 func main() {
 	root := flag.String("root", "", "apps 根目录（默认 ~/apps）")
-	cred := flag.String("cred", os.Getenv("DSH_KIT_CRED_PATCH"), "credentials patch 路径（可选）")
+	cred := flag.String("cred", os.Getenv("QED_CRED_PATCH"), "credentials patch 路径（可选）")
 	flag.Parse()
 
 	home, _ := os.UserHomeDir()
@@ -347,7 +347,7 @@ func main() {
 	if b, err := startBroker("https://api.deepseek.com/anthropic"); err == nil {
 		h.broker = b
 		if b.hasKey {
-			tmp := filepath.Join(os.TempDir(), "dshapps")
+			tmp := filepath.Join(os.TempDir(), "qed")
 			if p, perr := writeSandboxPatch(tmp, b.url()); perr == nil {
 				h.patch = p
 				dbg("已生成 sandbox patch: %s", p)

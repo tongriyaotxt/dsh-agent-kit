@@ -62,9 +62,9 @@ passes is indistinguishable from a test that works.
 This adds a second lock: mutate the source, watch the tests. If they stay green, your
 assertions were decoration.
 
-    git clone https://github.com/tongriyaotxt/dsh-agent-kit
-    pip install -e dsh-agent-kit/python
-    dsh-agent-kit demo        # 60s, no deps, no API key, no network
+    git clone https://github.com/tongriyaotxt/qed
+    pip install -e qed/python
+    qed demo        # 60s, no deps, no API key, no network
 
 The demo really runs — it scaffolds an app that is deliberately red, implements it, shows
 2/2 cases pass with 4/4 mutations caught, then weakens one assertion to show what
@@ -105,9 +105,9 @@ A test that always passes proves nothing — so I built the second lock for AI-w
    Cases green + mutations caught = done.
    Cases green + a mutation survives = your assertions were decoration.
 
-   git clone https://github.com/tongriyaotxt/dsh-agent-kit
-   pip install -e dsh-agent-kit/python
-   dsh-agent-kit demo   # 60s, no deps, no API key
+   git clone https://github.com/tongriyaotxt/qed
+   pip install -e qed/python
+   qed demo   # 60s, no deps, no API key
 
 3/ The demo shows both outcomes:
    2/2 cases · 4/4 mutations caught  → SELF-PROOF HOLDS
@@ -125,9 +125,9 @@ AI 写代码最大的问题不是「写不出来」，是「你不知道它写�
 我加的第二把锁是变异测试：把源码改坏，看测试还绿不绿。
 绿了，说明你的断言是装饰品。
 
-  git clone https://github.com/tongriyaotxt/dsh-agent-kit
-  pip install -e dsh-agent-kit/python
-  dsh-agent-kit demo      # 60 秒，零依赖，不用 API key，不联网
+  git clone https://github.com/tongriyaotxt/qed
+  pip install -e qed/python
+  qed demo      # 60 秒，零依赖，不用 API key，不联网
 
 demo 是真的跑：先给你一个故意红的 app，实现它，2/2 用例 + 4/4 变异被抓，
 然后故意把断言放松，让你看到「自证不成立」长什么样。

@@ -20,7 +20,7 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "python"))
 
-from dsh_agent_kit import DshClient, DshError  # noqa: E402
+from qed import DshClient, DshError  # noqa: E402
 
 
 def run_one(template: str, target: str, profile: str, cwd: str) -> dict:

@@ -124,7 +124,7 @@ python tests/test_client.py
 python tests/conformance.py --live
 
 # 5) 只有前端有问题？
-python -m dsh_agent_kit.gateway --port 8777   # 打开 http://127.0.0.1:8777/
+python -m qed.gateway --port 8777   # 打开 http://127.0.0.1:8777/
 ```
 
 第 1、3 步之间就能把「dsh 坏了」和「你的接入层坏了」分开 —— 这是排查的全部关键。

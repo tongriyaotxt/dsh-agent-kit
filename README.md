@@ -1,28 +1,29 @@
 # Make AI-written code prove itself
 
+> **`qed`** — *quod erat demonstrandum*. The mark you put at the end of a proof.
+> Your agent says "done"; this is where "done" has to come with evidence.
+>
 > **The open-source answer to Claude's “Install as app”** — same core idea (AI output becomes
 > a real desktop app, no packaging, no signing), plus the part everyone leaves out:
 > **proof that the code is actually correct.**
->
-> **The hard part of AI coding isn't generation. It's knowing whether it's right.**
 >
 > A test that always passes proves nothing — and most AI-written tests always pass.
 > This project adds the second lock: **mutation testing**, which catches whether your
 > assertions can actually be fooled.
 
 ```bash
-git clone https://github.com/tongriyaotxt/dsh-agent-kit
-pip install -e dsh-agent-kit/python
-dsh-agent-kit demo      # 60s · no deps · no API key · no network · everything really runs
+git clone https://github.com/tongriyaotxt/qed
+pip install -e qed/python
+qed demo      # 60s · no deps · no API key · no network · everything really runs
 ```
 
-<sub>Not on PyPI yet — `pip install dsh-agent-kit` starts working once it is.</sub>
+<sub>Not on PyPI yet — `pip install qed` starts working once it is.</sub>
 
 <p align="center">
-  <img src="assets/demo.svg" alt="dsh-agent-kit demo: self-proof holds, then fails when the assertion is weakened" width="920">
+  <img src="assets/demo.svg" alt="qed demo: self-proof holds, then fails when the assertion is weakened" width="920">
 </p>
 
-<p align="center"><sub>Everything in that screenshot is produced by <code>dsh-agent-kit demo</code> — nothing is faked.</sub></p>
+<p align="center"><sub>Everything in that screenshot is produced by <code>qed demo</code> — nothing is faked.</sub></p>
 
 ---
 
@@ -54,11 +55,11 @@ The self-proof layer is the point. The other two exist so you can actually use i
 ## Quick start (no dsh required)
 
 ```bash
-git clone https://github.com/tongriyaotxt/dsh-agent-kit
-pip install -e dsh-agent-kit/python
+git clone https://github.com/tongriyaotxt/qed
+pip install -e qed/python
 
 # 1. Generate an app — it is *deliberately* red
-python -m dsh_agent_kit.scaffold 发票统计 --desc "sum invoices by month"
+python -m qed.scaffold 发票统计 --desc "sum invoices by month"
 
 # 2. It fails, and that's honest
 cd ~/apps/发票统计

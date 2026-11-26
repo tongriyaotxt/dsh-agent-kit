@@ -1,7 +1,7 @@
 # 把 LLM 请求改走本地凭证 broker：dsh 只拿占位符，真 key 在 broker 进程内存里。
 #
 # 用法（端口由 DSH_BROKER_URL 决定，默认 8787）：
-#   python -m dsh_agent_kit.broker --port 8787        # 另开一个窗口
+#   python -m qed.broker --port 8787        # 另开一个窗口
 #   $env:DSH_BROKER_URL = 'http://127.0.0.1:8787'
 #   $env:DSH_BROKER_PLACEHOLDER = 'not-a-real-key'
 #   dsh --patch configs/broker.patch.yml --profile headless --json -

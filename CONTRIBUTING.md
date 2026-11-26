@@ -23,7 +23,7 @@ node --test tests/test_node.mjs
 python tests/conformance.py --live
 
 # 3) 手验网关
-python -m dsh_agent_kit.gateway --port 8777
+python -m qed.gateway --port 8777
 # 打开 http://127.0.0.1:8777/
 ```
 

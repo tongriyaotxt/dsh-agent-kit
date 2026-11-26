@@ -19,10 +19,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "python"))
 
-from dsh_agent_kit.gateway import create_server  # noqa: E402
+from qed.gateway import create_server  # noqa: E402
 
 LAUNCHER = [sys.executable, os.path.join(HERE, "fake_dsh.py")]
-STATE_DIR = os.path.join(tempfile.gettempdir(), "dsh-agent-kit-gw-tests")
+STATE_DIR = os.path.join(tempfile.gettempdir(), "qed-gw-tests")
 
 
 class Gateway:

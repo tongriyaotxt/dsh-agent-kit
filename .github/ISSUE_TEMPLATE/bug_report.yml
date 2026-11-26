@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for taking the time. Two things first:
 
-        1. `dsh-agent-kit demo` runs with **no deps, no API key, no network** — if your bug shows up there, it's much easier to reproduce.
+        1. `qed demo` runs with **no deps, no API key, no network** — if your bug shows up there, it's much easier to reproduce.
         2. If the docs say X and reality is Y, that's a bug too. Please report it — we track doc drift as a test failure.
 
   - type: textarea
@@ -34,8 +34,8 @@ body:
       label: Minimal reproduction
       description: Exact commands. If it involves an app, paste `app.json` and the failing `cases.json` entry.
       placeholder: |
-        pip install dsh-agent-kit
-        dsh-agent-kit scaffold demo-app
+        pip install qed
+        qed scaffold demo-app
         cd demo-app && python verify.py --mutate
     validations:
       required: true
@@ -44,7 +44,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: Output of `dsh-agent-kit --version`, plus `dsh --version` if you're using a real runtime
+      description: Output of `qed --version`, plus `dsh --version` if you're using a real runtime
     validations:
       required: true
 

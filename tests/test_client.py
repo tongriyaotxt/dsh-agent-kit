@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "python"))
 
-from dsh_agent_kit import (  # noqa: E402
+from qed import (  # noqa: E402
     DshClient,
     DshError,
     build_argv,
@@ -30,7 +30,7 @@ from dsh_agent_kit import (  # noqa: E402
 
 FAKE = os.path.join(HERE, "fake_dsh.py")
 LAUNCHER = [sys.executable, FAKE]
-STATE_DIR = os.path.join(tempfile.gettempdir(), "dsh-agent-kit-tests")
+STATE_DIR = os.path.join(tempfile.gettempdir(), "qed-tests")
 
 
 def client(**kw) -> DshClient:

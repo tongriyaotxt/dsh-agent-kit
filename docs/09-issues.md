@@ -181,7 +181,7 @@
 | 现象 | 发现方式 | 修法 |
 |---|---|---|
 | `schema_check` 遇到非 dict 事件抛 `AttributeError`，闸门在坏输入上崩溃 | 负样本「混入非对象行」首次运行 | `tests/conformance.py` 加类型守卫 |
-| Node 客户端无法被注入启动器，示例在 CI 里跑不了（`spawn dsh ENOENT`） | `run_examples.py` 首跑 | 新增 `envLauncherOverride()`，与 Python 侧 `DSH_KIT_LAUNCHER` 对齐 |
+| Node 客户端无法被注入启动器，示例在 CI 里跑不了（`spawn dsh ENOENT`） | `run_examples.py` 首跑 | 新增 `envLauncherOverride()`，与 Python 侧 `QED_LAUNCHER` 对齐 |
 | 变异点 `if not isinstance(ev, dict):` 在文件里出现两次，变异脚本 SKIP | `mutate.py` 首跑 | 变异锚点加长到跨两行 |
 
 ### 下一轮（v0.1）
@@ -221,9 +221,9 @@ D2 / D3 / D4（进程、网络、自我提权）与 D1 同属一个权限模型�
 
 ### 本阶段新增的能力
 
-- **自证 runner**（`dsh_agent_kit.verify`）：用例 + 变异双闸门，`用例绿 + 变异全抓` 才算成立。
-- **脚手架**（`dsh_agent_kit.scaffold`）：生成即**红**，杜绝"看起来做完了"。
-- **凭证 broker**（`dsh_agent_kit.broker`）：见 `docs/10-permission-adr.md`。
+- **自证 runner**（`qed.verify`）：用例 + 变异双闸门，`用例绿 + 变异全抓` 才算成立。
+- **脚手架**（`qed.scaffold`）：生成即**红**，杜绝"看起来做完了"。
+- **凭证 broker**（`qed.broker`）：见 `docs/10-permission-adr.md`。
 
 ### 垂直切片状态
 

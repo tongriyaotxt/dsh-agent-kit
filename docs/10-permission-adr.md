@@ -57,7 +57,7 @@ $env:DSH_PERMISSION_MODE = 'workspace-write'
 
 `dsh-llm-deepseek` 的 `baseURL` + `apiKeyEnv` 正好是这个形状，**不用改 dsh 一行代码**。
 
-产物：`python/dsh_agent_kit/broker.py`（零依赖，stdlib）+ `configs/broker.patch.yml`。
+产物：`python/qed/broker.py`（零依赖，stdlib）+ `configs/broker.patch.yml`。
 
 ### 实测：key 不落盘时 dsh 仍能工作
 
@@ -90,7 +90,7 @@ broker 的单元测试（`tests/test_broker.py`，5/5）：
 |---|---|---|---|
 | **D2** | app 能 spawn 任意进程 | **检测 + 告警**，不做强制白名单 | dsh 的 bash/pwsh 是通用执行器，在 dsh 层做不出白名单；强制白名单要上 L2 |
 | **D3** | app 能无限制外联 | **默认关掉 `web_search` / `web_fetch`**（`--patch` 禁插件）+ 声明式白名单（宿主代理） | 关插件是 dsh 原生能力，零成本；域名白名单要宿主代理，v0.2 |
-| **D4** | AI 能改自己的 profile 自我提权 | **`dsh_agent_kit.guard`**：指纹 + 收窄只读 + spawn 前后比对 | profile 是能力集的唯一来源，可写 = 权限模型失效 |
+| **D4** | AI 能改自己的 profile 自我提权 | **`qed.guard`**：指纹 + 收窄只读 + spawn 前后比对 | profile 是能力集的唯一来源，可写 = 权限模型失效 |
 
 ### D4 的实现与实测
 
@@ -236,7 +236,7 @@ DSH_PERMISSION_MODE=workspace-write dsh --patch configs/cred.patch.yml \
   --profile headless "计算 ~/.dsh/.credentials.yaml 的 SHA256"
 
 # 2. 起 broker
-python -m dsh_agent_kit.broker --port 8787
+python -m qed.broker --port 8787
 
 # 3. 走 broker 跑一轮（磁盘上没有真 key 也能成功）
 DSH_BROKER_PLACEHOLDER=placeholder \

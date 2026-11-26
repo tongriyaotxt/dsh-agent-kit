@@ -3,9 +3,9 @@
 一个窗口，列出 `~/apps/*`，点开就能跑。**一个进程管所有 app**，不搞「每个工具一个 exe」。
 
 ```
-dshapps.exe                     # 默认扫 ~/apps
-dshapps.exe -root D:\apps       # 指定根目录
-dshapps.exe -cred configs/cred.patch.yml   # 需要时补凭证 patch
+qed.exe                     # 默认扫 ~/apps
+qed.exe -root D:\apps       # 指定根目录
+qed.exe -cred configs/cred.patch.yml   # 需要时补凭证 patch
 ```
 
 ## 实测数据（2026-11-26 · Win11 26300）
@@ -21,7 +21,7 @@ dshapps.exe -cred configs/cred.patch.yml   # 需要时补凭证 patch
 ## 架构
 
 ```
-dshapps.exe（.NET 风格的 WebView2 窗口 + Go）
+qed.exe（.NET 风格的 WebView2 窗口 + Go）
   ├─ 扫描 ~/apps/*/app.json        → 左侧列表
   ├─ spawn: cmd /c dsh.cmd --profile <app> --json -
   │     cwd = app 目录            ← 写边界收在这里
@@ -67,14 +67,14 @@ dshapps.exe（.NET 风格的 WebView2 窗口 + Go）
 GUI 宿主没有控制台，出问题只能靠文件：
 
 ```powershell
-$env:DSHAPPS_DEBUG = '1'
-.\dshapps.exe
-Get-Content $env:TEMP\dshapps.log -Tail 20
+$env:QED_DEBUG = '1'
+.\qed.exe
+Get-Content $env:TEMP\qed.log -Tail 20
 ```
 
 ## 还没做的
 
 - 多窗口 / 应用坞（现在一次只跑一个任务，第二个会提示「已有任务在跑」）
 - 把 `ProfileGuard` 接进 spawn 前后（API 已就绪，见 `docs/10`）
-- 把 broker 接进 UI（现在靠 `DSH_KIT_BROKER_URL` 环境变量）
+- 把 broker 接进 UI（现在靠 `QED_BROKER_URL` 环境变量）
 - 空状态三个示例任务现在只是填进输入框，没有一键直达

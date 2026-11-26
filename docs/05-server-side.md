@@ -1,9 +1,9 @@
 # 05 · 服务端：把事件流变成 SSE
 
-前端不能 spawn 进程，所以要有一个**同机后端**把 JSONL 转成 SSE。本仓库自带零依赖实现：[`../python/dsh_agent_kit/gateway.py`](../python/dsh_agent_kit/gateway.py)。
+前端不能 spawn 进程，所以要有一个**同机后端**把 JSONL 转成 SSE。本仓库自带零依赖实现：[`../python/qed/gateway.py`](../python/qed/gateway.py)。
 
 ```bash
-python -m dsh_agent_kit.gateway --port 8777 --cwd /path/to/project [--token SECRET]
+python -m qed.gateway --port 8777 --cwd /path/to/project [--token SECRET]
 # GET  /            内置单页 demo
 # POST /ask         {task, session_id?, cwd?}  → text/event-stream
 # GET  /health      {ok, dsh, profile, cwd}

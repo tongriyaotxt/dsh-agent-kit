@@ -6,7 +6,7 @@
 //     if (ev.type === "text") process.stdout.write(ev.text);
 //   }
 //
-// 与 python/dsh_agent_kit/client.py 行为一一对应：任务走 stdin、stderr 分流、
+// 与 python/qed/client.py 行为一一对应：任务走 stdin、stderr 分流、
 // 自己实现超时（含进程树清理）、会话自动续接、环境变量摘除。
 
 import { spawn } from "node:child_process";
@@ -124,13 +124,13 @@ class LineQueue {
 }
 
 /**
- * `DSH_KIT_LAUNCHER` 环境变量优先：给一个 JSON 数组即可整段替换启动前缀，
+ * `QED_LAUNCHER` 环境变量优先：给一个 JSON 数组即可整段替换启动前缀，
  * 与 Python 客户端行为一致。用于 CI 接 tests/fake_dsh.py、或离线演示：
  *
- *   DSH_KIT_LAUNCHER='["python","tests/fake_dsh.py"]'
+ *   QED_LAUNCHER='["python","tests/fake_dsh.py"]'
  */
 export function envLauncherOverride() {
-  const raw = process.env.DSH_KIT_LAUNCHER;
+  const raw = process.env.QED_LAUNCHER;
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);

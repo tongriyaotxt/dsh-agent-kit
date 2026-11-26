@@ -1,12 +1,12 @@
-# dsh_agent_kit（Python，零依赖）
+# qed（Python，零依赖）
 
 ```bash
-# 直接用（不需要安装）：把 python/ 加进 PYTHONPATH，或复制 dsh_agent_kit/ 到你的项目
-export PYTHONPATH=/path/to/dsh-agent-kit/python
-python -c "from dsh_agent_kit import DshClient; print(DshClient().ask('reply with OK').text)"
+# 直接用（不需要安装）：把 python/ 加进 PYTHONPATH，或复制 qed/ 到你的项目
+export PYTHONPATH=/path/to/qed/python
+python -c "from qed import DshClient; print(DshClient().ask('reply with OK').text)"
 
 # 或者安装
-pip install -e /path/to/dsh-agent-kit/python
+pip install -e /path/to/qed/python
 ```
 
 ## API
@@ -50,13 +50,13 @@ pip install -e /path/to/dsh-agent-kit/python
 ### 网关
 
 ```bash
-python -m dsh_agent_kit.gateway --port 8777 --cwd . [--token SECRET] [--patch FILE]
+python -m qed.gateway --port 8777 --cwd . [--token SECRET] [--patch FILE]
 ```
 
 编程方式：
 
 ```python
-from dsh_agent_kit.gateway import create_server
+from qed.gateway import create_server
 
 server, cfg = create_server(cwd=".", port=8777, token="dev-secret", max_concurrency=4)
 server.serve_forever()
@@ -65,7 +65,7 @@ server.serve_forever()
 ## 模块布局
 
 ```
-dsh_agent_kit/
+qed/
 ├── client.py    Popen + 逐行 JSONL + 超时 + 会话（纯 stdlib）
 └── gateway.py   ThreadingHTTPServer + 手写 chunked SSE + 内置 demo 页
 ```
