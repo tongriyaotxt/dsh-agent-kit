@@ -1,5 +1,9 @@
 # Make AI-written code prove itself
 
+> **The open-source answer to Claude's “Install as app”** — same core idea (AI output becomes
+> a real desktop app, no packaging, no signing), plus the part everyone leaves out:
+> **proof that the code is actually correct.**
+>
 > **The hard part of AI coding isn't generation. It's knowing whether it's right.**
 >
 > A test that always passes proves nothing — and most AI-written tests always pass.
@@ -94,6 +98,26 @@ dsh --patch configs/cred.patch.yml --profile headless --json -   # stdin = task,
   `MISSING_CREDENTIAL` footgun
 - [`docs/11-quickstart.md`](docs/11-quickstart.md) — the 5-minute path
 - [`docs/09-issues.md`](docs/09-issues.md) — 76-item backlog, P0/P1/P2, with measured status
+
+## Relation to Claude's “Install as app”
+
+Anthropic shipped [Install as app](https://claude.com/resources/articles/install-as-app) in
+November 2026: describe an app to Claude, get an artifact, click once, and it opens as a real
+Mac/Windows window — no packaging, no code signing, no API key, because the host app is already
+signed and the artifact is just data.
+
+**This project is the open-source implementation of that idea**, with one deliberate addition.
+
+| | Claude · Install as app | This |
+|---|---|---|
+| Host | Claude desktop app (signed, online, tied to your Claude account) | Your own 7.6 MB Go + WebView2 binary |
+| What you build | An artifact (HTML/JS) | A folder: `logic.py` + `cases.json` |
+| How you know it's right | You run it and look at it | Cases green **and** mutations caught |
+| Needs an account / network | Yes | No |
+| Deliverable to someone else | They need Claude | Send the folder; they run `verify.py` |
+
+The last two rows aren't a feature list — they're the structural differences. Claude's version
+can't leave the account boundary; this one can't match their zero-setup polish. Pick accordingly.
 
 ## What it is **not**
 
