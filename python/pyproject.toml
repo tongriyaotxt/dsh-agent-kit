@@ -7,7 +7,7 @@ name = "dsh-agent-kit"
 version = "1.9.0"
 description = "Self-proof for AI-written code: cases green + mutations caught"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "dsh-agent-kit contributors" }]
 keywords = ["ai", "mutation-testing", "self-verification", "agent", "dsh", "jsonl"]
