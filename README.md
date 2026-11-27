@@ -99,6 +99,8 @@ dsh --patch configs/cred.patch.yml --profile headless --json -   # stdin = task,
   `MISSING_CREDENTIAL` footgun
 - [`docs/11-quickstart.md`](docs/11-quickstart.md) — the 5-minute path
 - [`docs/09-issues.md`](docs/09-issues.md) — 76-item backlog, P0/P1/P2, with measured status
+- [`docs/16-incident-2026-11-27-encoding.md`](docs/16-incident-2026-11-27-encoding.md) — incident
+  file: a `print` took the whole gate down (`cp1252` vs `≈`), and the two locks that stop it recurring
 
 ## Relation to Claude's “Install as app”
 

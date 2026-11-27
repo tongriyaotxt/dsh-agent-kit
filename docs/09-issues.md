@@ -275,3 +275,6 @@ UnicodeEncodeError: 'charmap' codec can't encode characters in position 18-19
    所以这次补的不是第 19 个守卫，而是**第 19 个也不会被忘掉**：静态锁查"有没有"，
    行为锁查"有没有用"。
 
+> 完整事故档（时间线 / 原始日志 / 排障路径 / 留档边界）：
+> [`16-incident-2026-11-27-encoding.md`](16-incident-2026-11-27-encoding.md)
+
