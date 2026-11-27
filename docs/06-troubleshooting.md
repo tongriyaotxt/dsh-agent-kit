@@ -31,6 +31,7 @@ dsh --profile headless --dump-config | head -30
 | 拿到 `text` 但内容不全 | 把增量当成了完整答案 | 以 `final.text` 为准 |
 | 事件一条都不来（挂住） | 没读到 EOF / 任务没写完 stdin | 写完任务**必须 close stdin** |
 | 输出乱码（前端） | UTF-8 多字节被 chunk 切开 | `TextDecoder.decode(v, {stream:true})` |
+| `UnicodeEncodeError: 'charmap' codec can't encode characters ...`（自己写脚本时） | Windows 上 **stdout 被重定向/管道**时按 ANSI 代码页编码（英文机 cp1252、中文机 cp936），`≈`、`✓`、汉字都不在里面；终端里直接跑反而正常 | 在入口 `main()` 开头 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")`（stderr 同样）；`tests/test_console_encoding.py` 会用 cp1252/cp936 真跑一遍，把这个崩法变成红灯 |
 
 ```bash
 # 最小可复现：确认是不是你的代码问题

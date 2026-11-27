@@ -88,7 +88,7 @@
 
 ---
 
-## E. 工程与维护（10）
+## E. 工程与维护（11）
 
 | ID | 现象 | 影响 | 判据 | 级别 |
 |---|---|---|---|---|
@@ -102,6 +102,7 @@
 | E8 | 没有回滚策略 | 改坏了只能手工回退 | 每次改前自动快照到 `_bak/`；`CHANGELOG` 记录可回滚点 | P1 |
 | E9 | kit 版本 ↔ dsh 版本无对应表 | 兼容性靠猜 | `docs/02` 加"kit 1.x ↔ dsh 0.2.x"矩阵，CI 校验 | P1 |
 | E10 | 没有发布流程 | 交付随意 | `CHANGELOG` + tag + 产物清单；一条 `make release` | P2 |
+| E11 | `live.yml` 首次线上运行就红：崩在 `print` 上（`UnicodeEncodeError: 'charmap' codec ...`），不是断言 | 每日真实 dsh 验证拿不到结果，E2 等于没闭 | 入口 `main()` 统一 `reconfigure(encoding="utf-8")`；`tests/test_console_encoding.py` 双闸门（静态 + cp1252/cp936 实跑），CI 纳入 | **P1** |
 
 ---
 
@@ -142,7 +143,7 @@
 | 级别 | 条数 | 处理策略 |
 |---|---|---|
 | **P0** | 12 | v0.1 之前必须清 |
-| **P1** | 36 | v0.1 之后第一批迭代 |
+| **P1** | 37 | v0.1 之后第一批迭代 |
 | **P2** | 24 | 规模化前 |
 | **P3** | 4 | 有空再说 |
 
@@ -241,3 +242,36 @@ scaffold → 红 → dsh 自己实现（35 s）→ verify --mutate → 2/2 + 变
 3. **D4**：profile 只读 + spawn 前后 hash 比对
 4. **B10**：PDF / Excel 输入转换层（先做 PDF→文本，用本机已有工具）
 5. **宿主最小壳**：扫 `~/apps/*`、一个 app 一个窗口、事件流上屏
+
+---
+
+## 进度（2026-11-27 · v1.10.1）
+
+### 已关闭
+
+| ID | 结论 | 证据 |
+|---|---|---|
+| **E11** | 已闭 ｜ 18 个入口补 UTF-8 stdout 守卫；新增 `tests/test_console_encoding.py` 双闸门并纳入 CI | 未修树 `4/7`（同一条 `UnicodeEncodeError`）→ 修后 `7/7`；`PYTHONIOENCODING=cp1252 python tests/check_docs_drift.py` 由 exit 1 变 exit 0 |
+| **E2** | 首次线上运行确认（补上当初那句「待首次线上运行确认」） | `live` run #1：安装 dsh、结构自检、跳过 live 调用都正常，**唯一**红点是 E11 |
+
+### 这次为什么值得记一笔
+
+`live` 第一次跑就红了，而日志第一眼像**断言失败**（`Process completed with exit code 1`），
+实际是：
+
+```
+文档漂移（包里条目数 vs docs/03）  print("  %s  %-9s 文档 ≈%d ...")
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 18-19
+```
+
+三个教训：
+
+1. **「红的」不等于「被测的东西坏了」。** 数字全对（98/98、126/126），崩的是把它写出来。
+   排障顺序要反过来：先看 traceback 的最后一帧，再看断言。
+2. **本地跑不出来，不是"没问题"。** 开发机终端是 UTF-8，CI 管道是 cp1252，
+   同一份代码两种行为。凡是"只在 CI 红"的，先怀疑**平台默认值**（编码、路径分隔符、大小写）。
+3. **同一个坑已经在三个文件里被踩过并修好了**（`conformance.py` / `test_client.py` /
+   `test_gateway.py` 都有 `reconfigure`），第四个文件还是漏了 —— 因为当时只靠"记得写"。
+   所以这次补的不是第 19 个守卫，而是**第 19 个也不会被忘掉**：静态锁查"有没有"，
+   行为锁查"有没有用"。
+

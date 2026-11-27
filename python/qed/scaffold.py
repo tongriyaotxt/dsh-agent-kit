@@ -288,6 +288,9 @@ def create_app(name: str, desc: str = "", root: str = None, force: bool = False,
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     import argparse
     parser = argparse.ArgumentParser(description="生成一个 app 的四件套")
     parser.add_argument("name", help="app 名字（可以是中文）")

@@ -33,6 +33,8 @@ jobs:
         run: python tests/run_examples.py
       - name: demo 冒烟（门面：零依赖、不联网、不用 key）
         run: python tests/test_demo.py
+      - name: 控制台编码闸门（cp1252 / cp936 下不许抛 UnicodeEncodeError）
+        run: python tests/test_console_encoding.py
       - name: schema 版本自检
         run: python -c "import json;json.load(open('spec/events.schema.json',encoding='utf-8'));print('schema ok')"
 

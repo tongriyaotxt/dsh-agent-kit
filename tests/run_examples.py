@@ -80,6 +80,9 @@ def run(case: Case, verbose: bool):
 
 
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     verbose = "-v" in (argv if argv is not None else sys.argv[1:])
     if not FAKE.exists():
         print("  FAIL  找不到 tests/fake_dsh.py")

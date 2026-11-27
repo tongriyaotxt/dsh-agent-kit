@@ -17,6 +17,9 @@ from qed import DshClient, DshError  # noqa: E402
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     client = DshClient(cwd=os.getcwd(), timeout=900)
     print("多轮对话（/reset 开新会话，/session 看 id，/quit 退出）")
     while True:

@@ -108,6 +108,9 @@ def tail(text: str, lines: int = 3) -> str:
 
 
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     argv = argv if argv is not None else sys.argv[1:]
     verbose = "-v" in argv
 

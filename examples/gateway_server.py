@@ -17,6 +17,9 @@ from qed.gateway import create_server  # noqa: E402
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8777)
     parser.add_argument("--host", default="127.0.0.1")

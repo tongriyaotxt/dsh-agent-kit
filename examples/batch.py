@@ -47,6 +47,9 @@ def run_one(template: str, target: str, profile: str, cwd: str) -> dict:
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="批量跑 DSH 任务")
     parser.add_argument("template", help='任务模板，用 {path} / {name} 占位')
     parser.add_argument("targets", nargs="+")

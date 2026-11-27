@@ -1,5 +1,54 @@
 # Changelog
 
+## 1.10.1 — 2026-11-27
+
+修 `live` 工作流第一次线上运行就红的问题
+（[run #1](https://github.com/tongriyaotxt/qed/actions/runs/45984168964)）。
+
+### 现象
+
+红的不是断言，是最后一行 `print`：
+
+```
+文档漂移（包里条目数 vs docs/03）
+  print("  %s  %-9s 文档 ≈%d  实测 %d  差 %d（容差 %d）" ...)
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 18-19
+```
+
+数字全对（`headless 98/98`、`tui 126/126`），崩掉的只是「把结果写出去」。
+
+### 根因
+
+Windows 上 Python 对**管道 / 重定向**的 stdout 按 ANSI 代码页编码：英文机 `cp1252`、
+中文机 `cp936`。`≈`、`✓`、汉字都不在 `cp1252` 里 —— 而 `live.yml` 的 stdout 正是管道。
+终端里直接跑看不出来（开发机终端是 UTF-8），只有 CI 和 `> out.txt` 才会踩。
+
+`conformance.py` / `test_client.py` / `test_gateway.py` 早就有
+`sys.stdout.reconfigure(encoding="utf-8")` 守卫，`check_docs_drift.py` 漏了 ——
+当时靠的是"记得写"，于是第四个文件忘了。
+
+### 变更
+
+- **18 个入口补守卫**（`main()` 开头 reconfigure 到 utf-8 / errors=replace）：
+  `tests/*` 9 个、`python/qed/*` 5 个、`examples/*` 4 个。这几个都是用户在 cmd /
+  PowerShell 里直接敲命令跑的东西，`qed --help`、`qed demo` 原本在中文 Windows
+  控制台上同样会崩。
+- **新增 `tests/test_console_encoding.py`（两把锁，纳入 CI）**：
+  - 静态锁：凡 print 非 ASCII 的脚本，守卫必须在 `main()` 里、且早于 main 内的第一行输出；
+  - 行为锁：`PYTHONIOENCODING=cp1252` / `cp936` 真跑 `check_docs_drift.py` 与 `qed --help`，
+    退出码必须 0、输出不许出现 `UnicodeEncodeError`；
+  - 外加两条元检查（检测器必须能判红无守卫样例、必须不误报已修样例）。
+- `docs/06` 输出类加一条症状 → 修法；`docs/09` 记 **E11** 并补 E2 的首次线上确认。
+
+### 验证
+
+| 项 | 修前 | 修后 |
+|---|---|---|
+| `tests/test_console_encoding.py` | 4/7（复现同一条 `UnicodeEncodeError`） | **7/7** |
+| `PYTHONIOENCODING=cp1252 python tests/check_docs_drift.py` | exit 1 | **exit 0**，`PASS headless 98 / tui 126` |
+| `PYTHONIOENCODING=gbk python tests/check_docs_drift.py` | exit 1 | **exit 0** |
+| 其余 Python 闸门（client / gateway / conformance / 负样本 / 变异 / examples / demo / broker / guard / verify） | 全绿 | **全绿**（本次只加守卫，未动逻辑） |
+
 ## 1.10.0 — 2026-11-26
 
 改名：`dsh-agent-kit` → **`qed`**。

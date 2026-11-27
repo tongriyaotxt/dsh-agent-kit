@@ -36,6 +36,9 @@ USAGE = """qed — AI 写的代码，自己证明它对
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     args = list(argv if argv is not None else sys.argv[1:])
     if not args or args[0] in ("-h", "--help", "help"):
         print(USAGE)

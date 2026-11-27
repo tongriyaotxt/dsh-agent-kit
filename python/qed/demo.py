@@ -81,6 +81,9 @@ WEAK_CASES = '''{
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     global FAST, COLOR
     argv = argv if argv is not None else sys.argv[1:]
     FAST = "--fast" in argv

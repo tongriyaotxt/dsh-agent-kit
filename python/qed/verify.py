@@ -307,6 +307,9 @@ def _fmt(report: Report) -> str:
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     import argparse
     parser = argparse.ArgumentParser(description="app 自证 runner")
     parser.add_argument("--app", required=True, help="app 目录（含 cases.json / logic.py）")
